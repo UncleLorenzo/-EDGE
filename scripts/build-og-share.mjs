@@ -160,6 +160,56 @@ const D = () => page(
   el("div", { style: flex({ justifyContent: "center", paddingBottom: 40, fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 16, letterSpacing: "5px", color: C.muted }) }, DOMAIN),
 );
 
+// ── YUP! · the swipe app (Tinder for prediction markets) ────────────────
+const yupOdd = (pct, label, color, bord) => el("div", { style: flex({
+  flexDirection: "column", alignItems: "center", flex: 1, border: `1px solid ${bord}`,
+  borderRadius: 11, backgroundColor: C.void2, paddingTop: 11, paddingBottom: 11, gap: 1,
+}) },
+  el("div", { style: flex({ fontFamily: "Anton", fontSize: 40, color }) }, pct),
+  el("div", { style: flex({ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 12, letterSpacing: "2px", color: C.muted }) }, label),
+);
+const yupCard = () => el("div", { style: flex({
+  flexDirection: "column", width: 392, borderRadius: 24, border: `1px solid ${C.borderBright}`,
+  backgroundColor: C.void3, paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: 24,
+  position: "relative", transform: "rotate(3deg)", boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+}) },
+  el("div", { style: flex({ position: "absolute", top: 0, left: 0, width: 150, height: 5, backgroundColor: C.lime }) }),
+  el("div", { style: flex({ justifyContent: "space-between", alignItems: "center" }) },
+    el("div", { style: flex({ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 13, letterSpacing: "1px", color: C.muted }) }, "BITCOIN · KALSHI"),
+    el("div", { style: flex({ fontFamily: "JetBrains Mono", fontSize: 12, color: C.muted }) }, "$2.4M VOL"),
+  ),
+  el("div", { style: flex({ flexDirection: "column", alignItems: "center", marginTop: 18 }) },
+    el("div", { style: flex({ fontFamily: "Anton", fontSize: 104, lineHeight: 0.9, color: C.lime, letterSpacing: "1px" }) }, "0:42"),
+    el("div", { style: flex({ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 12, letterSpacing: "5px", color: C.muted, marginTop: 2 }) }, "UNTIL CLOSE"),
+  ),
+  el("div", { style: flex({ fontFamily: "DM Sans", fontWeight: 700, fontSize: 23, color: C.white, textAlign: "center", justifyContent: "center", marginTop: 18, marginBottom: 18, lineHeight: 1.2 }) }, "BTC price up in the next 15 min?"),
+  el("div", { style: flex({ gap: 11 }) }, yupOdd("53¢", "NO", C.magenta, C.borderMag), yupOdd("47¢", "YES", C.green, C.borderGreen)),
+  el("div", { style: flex({ position: "absolute", top: 64, right: -6, transform: "rotate(11deg)", border: `4px solid ${C.green}`, borderRadius: 10, paddingLeft: 13, paddingRight: 13, paddingTop: 3, paddingBottom: 3, fontFamily: "Anton", fontSize: 40, color: C.green }) }, "YUP!"),
+);
+const Y = () => page(
+  Grid(), Glow("6% 26%", "rgba(196,255,0,0.18)", 46), Glow("96% 92%", "rgba(255,0,110,0.14)", 48), Brackets(),
+  TopBar("YUP! · BETS CLOSING IN MINUTES", C.lime),
+  el("div", { style: flex({ flex: 1, flexDirection: "column", padding: "14px 56px 26px", position: "relative", zIndex: 5 }) },
+    el("div", { style: flex({ flex: 1, flexDirection: "row", alignItems: "center" }) },
+      el("div", { style: flex({ flexDirection: "column", flex: 1, paddingRight: 16 }) },
+        el("div", { style: flex({ fontFamily: "Anton", fontSize: 178, lineHeight: 0.82, letterSpacing: "-5px", alignItems: "baseline" }) },
+          el("div", { style: flex({ color: C.white }) }, "YUP"),
+          el("div", { style: flex({ color: C.lime }) }, "!"),
+        ),
+        el("div", { style: flex({ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 21, letterSpacing: "3px", color: C.lime, textTransform: "uppercase", marginTop: 16 }) }, "TINDER FOR PREDICTION MARKETS"),
+        el("div", { style: flex({ fontFamily: "DM Sans", fontSize: 26, color: C.white, opacity: 0.85, marginTop: 14, lineHeight: 1.3, maxWidth: 440 }) }, "Bets that settle in minutes. Swipe right, send it."),
+        el("div", { style: flex({ gap: 18, marginTop: 28, alignItems: "center" }) },
+          el("div", { style: flex({ fontFamily: "Anton", fontSize: 32, color: C.magenta }) }, "← NAH"),
+          el("div", { style: flex({ width: 2, height: 28, backgroundColor: C.border }) }),
+          el("div", { style: flex({ fontFamily: "Anton", fontSize: 32, color: C.green }) }, "YUP →"),
+        ),
+      ),
+      el("div", { style: flex({ alignItems: "center", justifyContent: "center", paddingLeft: 8 }) }, yupCard()),
+    ),
+    FootBar([el("div", { style: flex({ color: C.lime }) }, "/YUP"), el("div", { style: flex() }, "·"), el("div", { style: flex() }, "POLYMARKET × KALSHI"), el("div", { style: flex() }, "·"), el("div", { style: flex({ color: C.green }) }, "INSTANT")]),
+  ),
+);
+
 console.log("→ fonts…");
 const [anton, dm, mono5, mono7] = await Promise.all([
   getFont("Anton", 400), getFont("DM Sans", 400), getFont("JetBrains Mono", 500), getFont("JetBrains Mono", 700),
@@ -170,7 +220,7 @@ const fonts = [
   { name: "JetBrains Mono", data: mono5, weight: 500, style: "normal" },
   { name: "JetBrains Mono", data: mono7, weight: 700, style: "normal" },
 ];
-const cards = { "og-share-a": A, "og-share-b": B, "og-share-c": Cv, "og-share-d": D };
+const cards = { "og-share-a": A, "og-share-b": B, "og-share-c": Cv, "og-share-d": D, "og-share-yup": Y };
 for (const [name, fn] of Object.entries(cards)) {
   const svg = await satori(fn(), { width: 1200, height: 630, fonts });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
