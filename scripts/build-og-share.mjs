@@ -20,7 +20,7 @@ async function getFont(family, weight) {
 
 const C = {
   void: "#050507", void2: "#0C0C10", void3: "#141418",
-  lime: "#C4FF00", magenta: "#FF006E", green: "#00FF85",
+  lime: "#C4FF00", magenta: "#FF006E", green: "#00FF85", red: "#FF3344",
   white: "#F5F5F0", muted: "#7A7A82",
   border: "rgba(245,245,240,0.10)", borderBright: "rgba(196,255,0,0.30)",
   borderGreen: "rgba(0,255,133,0.32)", borderMag: "rgba(255,0,110,0.40)",
@@ -210,6 +210,36 @@ const Y = () => page(
   ),
 );
 
+// ── YUP! DARE — the scroll-stopper: clock + a call the viewer wants to make ──
+const dareBtn = (label, color, bord) => el("div", { style: flex({
+  flexDirection: "column", alignItems: "center", border: `2px solid ${bord}`, borderRadius: 16,
+  paddingTop: 16, paddingBottom: 16, paddingLeft: 40, paddingRight: 40, backgroundColor: C.void2,
+}) },
+  el("div", { style: flex({ fontFamily: "Anton", fontSize: 48, color }) }, label),
+);
+const Ydare = () => page(
+  Grid(), Glow("50% 4%", "rgba(196,255,0,0.18)", 42), Glow("8% 96%", "rgba(255,0,110,0.13)", 44), Glow("94% 96%", "rgba(0,255,133,0.10)", 42), Brackets(),
+  TopBar("YUP! · TINDER FOR MARKETS", C.lime),
+  el("div", { style: flex({ flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "4px 56px 14px", position: "relative", zIndex: 5 }) },
+    el("div", { style: flex({ alignItems: "center", gap: 11, fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 18, letterSpacing: "4px", color: C.green, textTransform: "uppercase" }) },
+      el("div", { style: flex({ width: 9, height: 9, borderRadius: 999, backgroundColor: C.red }) }),
+      "BITCOIN · KALSHI · CLOSES IN",
+    ),
+    el("div", { style: flex({ fontFamily: "Anton", fontSize: 224, lineHeight: 0.8, letterSpacing: "3px", color: C.lime, marginTop: 2 }) }, "0:42"),
+    el("div", { style: flex({ fontFamily: "DM Sans", fontWeight: 700, fontSize: 41, color: C.white, marginTop: 12 }) }, "Will BTC be UP in 15 minutes?"),
+    el("div", { style: flex({ alignItems: "center", gap: 26, marginTop: 26 }) },
+      dareBtn("← NO", C.magenta, C.borderMag),
+      el("div", { style: flex({ fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 15, letterSpacing: "3px", color: C.muted }) }, "YOUR CALL"),
+      dareBtn("YUP →", C.green, C.borderGreen),
+    ),
+  ),
+  el("div", { style: flex({ justifyContent: "center", alignItems: "center", paddingBottom: 30, gap: 12, fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 15, letterSpacing: "3px", color: C.muted, textTransform: "uppercase", zIndex: 5 }) },
+    el("div", { style: flex({ color: C.lime }) }, "YUP!"), el("div", { style: flex() }, "·"),
+    el("div", { style: flex() }, "BETS THAT SETTLE IN MINUTES, NOT YEARS"), el("div", { style: flex() }, "·"),
+    el("div", { style: flex({ color: C.lime }) }, DOMAIN),
+  ),
+);
+
 console.log("→ fonts…");
 const [anton, dm, mono5, mono7] = await Promise.all([
   getFont("Anton", 400), getFont("DM Sans", 400), getFont("JetBrains Mono", 500), getFont("JetBrains Mono", 700),
@@ -220,7 +250,7 @@ const fonts = [
   { name: "JetBrains Mono", data: mono5, weight: 500, style: "normal" },
   { name: "JetBrains Mono", data: mono7, weight: 700, style: "normal" },
 ];
-const cards = { "og-share-a": A, "og-share-b": B, "og-share-c": Cv, "og-share-d": D, "og-share-yup": Y };
+const cards = { "og-share-a": A, "og-share-b": B, "og-share-c": Cv, "og-share-d": D, "og-share-yup": Ydare, "og-share-yup2": Y };
 for (const [name, fn] of Object.entries(cards)) {
   const svg = await satori(fn(), { width: 1200, height: 630, fonts });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
