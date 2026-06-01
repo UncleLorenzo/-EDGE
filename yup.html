@@ -208,7 +208,7 @@ main.yup {
 /* ── list view ── */
 .listview { width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: none; flex-direction: column; gap: 8px; padding: 4px 2px 10px; scrollbar-width: thin; }
 .listview::-webkit-scrollbar { width: 6px; } .listview::-webkit-scrollbar-thumb { background: var(--void-4); border-radius: 3px; }
-.lrow { background: linear-gradient(150deg, var(--void-3), var(--void-2)); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: center; }
+.lrow { background: linear-gradient(150deg, var(--void-3), var(--void-2)); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: center; flex-shrink: 0; }
 .lrow.warn { border-color: rgba(255,184,0,.35); }
 .lrow.urgent { border-color: rgba(255,51,68,.45); box-shadow: 0 0 20px rgba(255,51,68,.1); }
 .l-cd { text-align: center; }
