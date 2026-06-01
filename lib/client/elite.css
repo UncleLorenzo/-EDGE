@@ -856,8 +856,11 @@ header.elite-nav.is-scrolled {
 
 /* ── Elite mobile: minimal bar, rich drawer ──────────────────────────── */
 @media (max-width: 768px) {
-  /* Bar stays clean — logo + hamburger; the actions move into the drawer */
-  header.elite-nav .nav-right .btn { display: none; }
+  /* Bar stays clean — logo + hamburger; the actions move into the drawer.
+     Bumped specificity (.elite-nav.site-nav) so this beats the later desktop
+     `header.site-nav .nav-right .btn { display:inline-flex }` rule. */
+  header.elite-nav .nav-right .btn,
+  header.elite-nav.site-nav .nav-right .btn { display: none; }
 
   /* Glyph icons lead each drawer row */
   header > nav.elite-drawer a .nav-ico,
