@@ -93,9 +93,10 @@ function renderSwipe() {
 function cardEl(c) {
   const el = document.createElement("div");
   el.className = "card";
-  el.dataset.id = c.id; el.dataset.close = c.close_ts;
+  el.dataset.id = c.id; el.dataset.close = c.close_ts; el.dataset.open = c.open_ts || (c.close_ts - 900);
   const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
   el.innerHTML = `
+    <div class="card-drain"><div class="drain-fill"></div></div>
     <div class="card-glow"></div>
     <div class="stamp yes">YUP!</div>
     <div class="stamp no">NO</div>
@@ -127,7 +128,8 @@ function renderList() {
 function listRow(c) {
   const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
   const called = state.called.get(c.id);
-  return `<div class="lrow${called ? " called" : ""}" data-id="${escAttr(c.id)}" data-close="${c.close_ts}">
+  return `<div class="lrow${called ? " called" : ""}" data-id="${escAttr(c.id)}" data-close="${c.close_ts}" data-open="${c.open_ts || (c.close_ts - 900)}">
+    <div class="l-drain"></div>
     <div class="l-cd"><div class="n">--:--</div><div class="l">left</div></div>
     <div class="l-mid">
       <div class="l-cat">${c.emoji || "🎲"} ${esc(c.category)} · ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</div>
@@ -168,7 +170,18 @@ function paintCountdowns() {
   if (state.all.length !== before) { state.topId = "__closed__"; state.listSig = ""; renderView(); }
 }
 function paintCd(el, num, t) {
-  const left = Number(el.dataset.close) - t;
+  const close = Number(el.dataset.close);
+  const open = Number(el.dataset.open) || close - 900;
+  const left = close - t;
+  // draining time-bar — shows this market's life remaining, urgency-colored
+  const fill = el.querySelector(".drain-fill") || el.querySelector(".l-drain");
+  if (fill) {
+    const dur = Math.max(60, close - open);
+    fill.style.width = Math.max(0, Math.min(100, (left / dur) * 100)).toFixed(1) + "%";
+    const col = left <= 60 ? "var(--red)" : left <= 300 ? "var(--amber)" : "var(--lime)";
+    fill.style.background = col;
+    fill.style.boxShadow = `0 0 12px ${col}`;
+  }
   if (left <= 0) { if (num) num.textContent = "CLOSED"; el.classList.remove("urgent"); el.classList.add("warn"); return; }
   const mm = Math.floor(left / 60), ss = left % 60;
   if (num) num.textContent = `${mm}:${String(ss).padStart(2, "0")}`;

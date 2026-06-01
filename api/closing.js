@@ -56,6 +56,7 @@ async function fetchKalshi(now, windowSec) {
       no_price: clamp(num(m.no_ask_dollars) || 1 - yes),
       volume_24h: num(m.volume_24h_fp),
       close_ts: closeTs,
+      open_ts: isoUnix(m.open_time),
       link: kalshiMarketUrl(series, m.event_ticker),
       yes_token: null,
     });
@@ -87,6 +88,7 @@ async function fetchPoly(now, windowSec) {
       no_price: clamp(1 - yes),
       volume_24h: num(m.volume24hr ?? m.volume24hrClob),
       close_ts: closeTs,
+      open_ts: isoUnix(m.startDate || m.startDateIso || m.createdAt),
       link: polyEventUrl(m),
       yes_token: arr(m.clobTokenIds)[yi >= 0 ? yi : 0] || null,
     });
