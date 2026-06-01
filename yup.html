@@ -189,6 +189,59 @@ main.yup {
 .yt .go { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); white-space: nowrap; }
 
 @media (min-width: 600px) { .act.nah, .act.yup { width: 66px; height: 66px; } }
+
+/* ── view toggle + stats strip ── */
+.yup-controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 9px; flex-wrap: wrap; }
+.view-toggle { display: inline-flex; gap: 3px; }
+.view-toggle button { background: transparent; border: none; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 13px; border-radius: 7px; cursor: pointer; transition: .15s; }
+.view-toggle button:hover:not(.active) { color: var(--white); background: rgba(245,245,240,.05); }
+.view-toggle button.active { color: var(--void); background: var(--lime); font-weight: 700; }
+.stats-strip { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 9px; font-family: 'JetBrains Mono', monospace; font-size: 11px; flex-wrap: wrap; }
+.ss { color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.ss.sep { opacity: .4; }
+.ss.live { color: var(--green); }
+.ss.live .d { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 1.4s infinite; }
+.ss.rec b { color: var(--white); }
+.ss.streak { color: var(--amber); font-weight: 700; }
+.ss.rate { color: var(--lime); font-weight: 700; }
+
+/* ── list view ── */
+.listview { width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: none; flex-direction: column; gap: 8px; padding: 4px 2px 10px; scrollbar-width: thin; }
+.listview::-webkit-scrollbar { width: 6px; } .listview::-webkit-scrollbar-thumb { background: var(--void-4); border-radius: 3px; }
+.lrow { background: linear-gradient(150deg, var(--void-3), var(--void-2)); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: center; }
+.lrow.warn { border-color: rgba(255,184,0,.35); }
+.lrow.urgent { border-color: rgba(255,51,68,.45); box-shadow: 0 0 20px rgba(255,51,68,.1); }
+.l-cd { text-align: center; }
+.l-cd .n { font-family: 'Anton', sans-serif; font-size: 24px; line-height: 1; color: var(--lime); }
+.lrow.warn .l-cd .n { color: var(--amber); } .lrow.urgent .l-cd .n { color: var(--red); }
+.l-cd .l { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+.l-mid { min-width: 0; }
+.l-cat { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.l-q { font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.25; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.l-odds { display: flex; gap: 6px; }
+.l-bet { border: 1px solid var(--border); border-radius: 9px; padding: 7px 10px; text-align: center; cursor: pointer; min-width: 50px; background: transparent; transition: .13s; }
+.l-bet .p { font-family: 'Anton', sans-serif; font-size: 18px; line-height: 1; display: block; }
+.l-bet .s { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: .1em; color: var(--muted); }
+.l-bet.no .p { color: var(--magenta); } .l-bet.no:active, .l-bet.no:hover { border-color: var(--magenta); background: rgba(255,0,110,.1); }
+.l-bet.yes .p { color: var(--green); } .l-bet.yes:active, .l-bet.yes:hover { border-color: var(--green); background: rgba(0,255,133,.1); }
+.lrow.called { opacity: .55; }
+.lrow.called .l-odds { display: none; }
+.l-called { display: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; white-space: nowrap; }
+.lrow.called .l-called { display: block; }
+.l-called.yes { color: var(--green); } .l-called.no { color: var(--magenta); }
+
+/* view state: hide actions/deck-empty in list mode */
+body.list-mode .deck, body.list-mode #actions { display: none; }
+body.list-mode .listview { display: flex; }
+
+/* ── slip resolution ── */
+.slip-stats { display: flex; gap: 14px; align-items: baseline; padding: 4px 4px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.slip-stats b { font-family: 'Anton', sans-serif; font-size: 20px; }
+.slip-stats .rec b { color: var(--white); } .slip-stats .rate b { color: var(--lime); } .slip-stats .strk b { color: var(--amber); }
+.slip-row { grid-template-columns: auto 1fr auto; }
+.slip-status { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.slip-status.won { color: var(--green); } .slip-status.lost { color: var(--red); } .slip-status.pending { color: var(--muted); }
+.slip-row.won { background: rgba(0,255,133,.04); } .slip-row.lost { background: rgba(255,51,68,.04); }
 </style>
 </head>
 
@@ -215,13 +268,23 @@ main.yup {
   <div class="yup-top">
     <div class="yup-brand">YUP<span class="bang">!</span></div>
     <div class="yup-sub">Bets closing in minutes · swipe · send it</div>
-    <div class="yup-meta">
-      <span id="yupCount"><span class="d"></span>loading…</span>
+    <div class="yup-controls">
+      <div class="view-toggle" id="viewToggle">
+        <button data-v="swipe" class="active">◫ Swipe</button>
+        <button data-v="list">≡ List</button>
+      </div>
       <div class="yup-window" id="yupWindow">
         <button data-m="10">10M</button>
         <button data-m="30" class="active">30M</button>
         <button data-m="60">60M</button>
       </div>
+    </div>
+    <div class="stats-strip" id="statsStrip">
+      <span class="ss live"><span class="d"></span><b id="yupCountN">—</b> closing</span>
+      <span class="ss sep">·</span>
+      <span class="ss rec"><b id="ssRecord">0–0</b> record</span>
+      <span class="ss streak" id="ssStreak">🔥 0</span>
+      <span class="ss rate" id="ssRate">—</span>
     </div>
   </div>
 
@@ -233,7 +296,9 @@ main.yup {
     </div>
   </div>
 
-  <div class="actions">
+  <div class="listview" id="listView"></div>
+
+  <div class="actions" id="actions">
     <button class="act nah" id="btnNah" aria-label="Bet NO">✗<span>NO</span></button>
     <button class="act skip" id="btnSkip" aria-label="Skip">↓<span>SKIP</span></button>
     <button class="act yup" id="btnYup" aria-label="Bet YES">✓<span>YUP</span></button>
@@ -244,6 +309,7 @@ main.yup {
 
 <div class="slip-panel" id="slipPanel">
   <h3>Your <span style="color:var(--lime)">Calls</span> <span class="x" id="slipClose">×</span></h3>
+  <div class="slip-stats" id="slipStats"></div>
   <div id="slipList"><div class="slip-empty">No calls yet. Swipe a card — right to YUP (YES), left for NO.</div></div>
 </div>
 
