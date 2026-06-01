@@ -105,7 +105,9 @@ main.yup {
 .card-q { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: clamp(18px, 5vw, 23px); line-height: 1.18; text-align: center; margin: 8px 4px auto; position: relative; z-index: 2; }
 
 .card-odds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; z-index: 2; }
-.odd { border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+.odd { border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: transform .1s, background .12s, border-color .12s; }
+.odd.yes:active { background: rgba(0,255,133,.18); border-color: var(--green); transform: scale(.97); }
+.odd.no:active { background: rgba(255,0,110,.18); border-color: var(--magenta); transform: scale(.97); }
 .odd .p { font-family: 'Anton', sans-serif; font-size: 30px; line-height: 1; display: block; }
 .odd .l { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 3px; display: block; }
 .odd.yes { background: rgba(0,255,133,.06); border-color: rgba(0,255,133,.25); }
@@ -269,6 +271,43 @@ body.list-mode .upnext { display: none; }
 .un-odds { display: flex; justify-content: space-between; margin-top: 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
 .un-odds .no { color: var(--magenta); } .un-odds .yes { color: var(--green); }
 .un-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); padding: 14px 4px; }
+
+/* ── stage: stacked on mobile, card + live queue panel side-by-side on desktop ── */
+.yup-stage { width: 100%; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+
+@media (min-width: 880px) {
+  main.yup { max-width: 1000px; padding-bottom: 18px; }
+  /* swipe mode → two columns: card + actions on the left, tall queue on the right */
+  body:not(.list-mode) .yup-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "deck queue" "acts queue";
+    column-gap: 28px; row-gap: 14px;
+    align-items: stretch;
+  }
+  body:not(.list-mode) .yup-stage > .deck { grid-area: deck; }
+  body:not(.list-mode) .yup-stage > #actions { grid-area: acts; align-self: center; }
+  body:not(.list-mode) .yup-stage > .upnext {
+    grid-area: queue; margin-top: 0; min-height: 0;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: linear-gradient(180deg, rgba(245,245,240,.025), rgba(245,245,240,.008));
+    padding: 14px 10px 8px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 18px 50px rgba(0,0,0,.35);
+  }
+  body:not(.list-mode) .yup-stage > .upnext .upnext-head { font-size: 11px; margin-bottom: 11px; padding-right: 4px; }
+  body:not(.list-mode) .yup-stage > .upnext .upnext-track {
+    flex: 1 1 auto; min-height: 0;
+    flex-direction: column; overflow-x: hidden; overflow-y: auto;
+    gap: 8px; padding: 0 6px 4px 0;
+  }
+  body:not(.list-mode) .yup-stage > .upnext .upnext-track::-webkit-scrollbar { width: 5px; height: auto; }
+  body:not(.list-mode) .yup-stage .un-chip { width: auto; flex: 0 0 auto; }
+  body:not(.list-mode) .yup-stage .un-q { height: auto; min-height: 26px; }
+  /* a little more presence for the card on wide screens — fill the row, never spill into the actions */
+  body:not(.list-mode) .yup-stage > .deck .card { max-width: 520px; height: 100%; max-height: 460px; }
+}
 </style>
 </head>
 
@@ -294,7 +333,7 @@ body.list-mode .upnext { display: none; }
 <main class="yup">
   <div class="yup-top">
     <div class="yup-brand">YUP<span class="bang">!</span></div>
-    <div class="yup-sub">Bets closing in minutes · swipe · send it</div>
+    <div class="yup-sub">Swipe or tap — <span style="color:var(--green)">YES →</span> · <span style="color:var(--magenta)">← NO</span> · bets close in minutes</div>
     <div class="yup-controls">
       <div class="view-toggle" id="viewToggle">
         <button data-v="swipe" class="active">◫ Swipe</button>
@@ -315,6 +354,7 @@ body.list-mode .upnext { display: none; }
     </div>
   </div>
 
+  <div class="yup-stage" id="yupStage">
   <div class="deck" id="deck">
     <div class="deck-empty" id="deckEmpty" hidden>
       <div class="big">🎲</div>
@@ -324,7 +364,7 @@ body.list-mode .upnext { display: none; }
   </div>
 
   <div class="upnext" id="upNext">
-    <div class="upnext-head">↓ Up next · <b id="upNextCount">0</b> more closing soon — tap any to jump</div>
+    <div class="upnext-head">⏭ Up next · <b id="upNextCount">0</b> closing soon · tap to jump</div>
     <div class="upnext-track" id="upNextTrack"></div>
   </div>
 
@@ -335,6 +375,7 @@ body.list-mode .upnext { display: none; }
     <button class="act skip" id="btnSkip" aria-label="Skip">↓<span>SKIP</span></button>
     <button class="act yup" id="btnYup" aria-label="Bet YES">✓<span>YUP</span></button>
   </div>
+  </div><!-- /.yup-stage -->
 
   <button class="slip-toggle" id="slipToggle">Your calls · <b id="slipCount">0</b></button>
 </main>

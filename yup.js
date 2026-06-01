@@ -221,10 +221,12 @@ function paintCd(el, num, t) {
 
 // ── swipe drag ────────────────────────────────────────────────────────
 function attachDrag(el, card) {
-  let sx = 0, sy = 0, dx = 0, dy = 0, active = false;
+  let sx = 0, sy = 0, dx = 0, dy = 0, active = false, startSide = null;
   const yesS = el.querySelector(".stamp.yes"), noS = el.querySelector(".stamp.no");
   el.addEventListener("pointerdown", (e) => {
     active = true; state.dragging = true; sx = e.clientX; sy = e.clientY; dx = dy = 0;
+    const o = e.target.closest(".odd"); // tapping a pill = bet that side
+    startSide = o ? (o.classList.contains("yes") ? "yes" : "no") : null;
     el.style.transition = "none";
     try { el.setPointerCapture(e.pointerId); } catch {}
   });
@@ -242,6 +244,7 @@ function attachDrag(el, card) {
     el.style.transition = "transform .3s cubic-bezier(.2,.7,.3,1)";
     if (dx > 100) commit("yes", card, el);
     else if (dx < -100) commit("no", card, el);
+    else if (startSide && Math.abs(dx) < 8 && Math.abs(dy) < 8) commit(startSide, card, el); // tapped a pill
     else { el.style.transform = ""; yesS.style.opacity = 0; noS.style.opacity = 0; maybeRenderSwipe(); }
   };
   el.addEventListener("pointerup", end);
