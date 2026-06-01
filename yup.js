@@ -20,6 +20,7 @@ const state = {
   dragging: false,
   topId: "",
   listSig: "",
+  jumpId: null,       // when set, this card jumps to the front of the deck
   best: Number(localStorage.getItem("yup_best") || 0) || 0,
 };
 state.slip.forEach((s) => { if (s.id) state.called.set(s.id, s.side); });
@@ -29,7 +30,15 @@ const esc = (s) => { const d = document.createElement("div"); d.textContent = s 
 const escAttr = (s) => esc(s).replace(/"/g, "&quot;");
 function loadSlip() { try { return JSON.parse(localStorage.getItem("yup_slip") || "[]"); } catch { return []; } }
 function saveSlip() { try { localStorage.setItem("yup_slip", JSON.stringify(state.slip.slice(0, 150))); } catch {} }
-function deckCards() { return state.all.filter((c) => !state.seen.has(c.id) && c.close_ts - nowTs() > 1); }
+function deckCards() {
+  let arr = state.all.filter((c) => !state.seen.has(c.id) && c.close_ts - nowTs() > 1);
+  if (state.jumpId) {
+    const j = arr.find((c) => c.id === state.jumpId);
+    if (j) arr = [j, ...arr.filter((c) => c.id !== state.jumpId)];
+    else state.jumpId = null; // jumped card was swiped/closed → resume normal order
+  }
+  return arr;
+}
 
 // ── data ──────────────────────────────────────────────────────────────
 async function load() {
@@ -64,8 +73,27 @@ function setView(v) {
 }
 function renderView() {
   if (state.view === "list") renderList();
-  else maybeRenderSwipe();
+  else { maybeRenderSwipe(); renderUpNext(); }
   const el = $("#yupCountN"); if (el) el.textContent = deckCards().length;
+}
+
+// the queue preview under the swipe card — the next bets closing soon
+function renderUpNext() {
+  const track = $("#upNextTrack"); if (!track) return;
+  const all = deckCards();
+  const queue = all.slice(1, 12);
+  const cnt = $("#upNextCount"); if (cnt) cnt.textContent = Math.max(0, all.length - 1);
+  if (!queue.length) { track.innerHTML = `<div class="un-empty">Last one up — swipe it, or widen the window for more.</div>`; return; }
+  track.innerHTML = queue.map(unChip).join("");
+  paintCountdowns();
+}
+function unChip(c) {
+  const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
+  return `<div class="un-chip" data-id="${escAttr(c.id)}" data-close="${c.close_ts}">
+    <div class="un-cd">--:--</div>
+    <div class="un-q">${esc(c.title)}</div>
+    <div class="un-odds"><span class="no">${no}¢ No</span><span class="yes">${yes}¢ Yes</span></div>
+  </div>`;
 }
 
 // ── swipe deck ────────────────────────────────────────────────────────
@@ -165,6 +193,8 @@ function paintCountdowns() {
   const t = nowTs();
   deck.querySelectorAll(".card:not(.gone)").forEach((el) => paintCd(el, el.querySelector(".cd-num"), t));
   listView.querySelectorAll(".lrow").forEach((el) => paintCd(el, el.querySelector(".l-cd .n"), t));
+  const un = document.getElementById("upNextTrack");
+  if (un) un.querySelectorAll(".un-chip").forEach((el) => paintCd(el, el.querySelector(".un-cd"), t));
   const before = state.all.length;
   state.all = state.all.filter((c) => c.close_ts - t > 0);
   if (state.all.length !== before) { state.topId = "__closed__"; state.listSig = ""; renderView(); }
@@ -231,7 +261,7 @@ function commit(side, card, el) {
   state.seen.add(card.id);
   if (side !== "skip") { state.called.set(card.id, side); recordCall(card, side); }
   state.topId = "__advance__";
-  setTimeout(maybeRenderSwipe, 60);
+  setTimeout(() => { maybeRenderSwipe(); renderUpNext(); }, 60);
 }
 
 // ── slip + streak game ────────────────────────────────────────────────
@@ -330,6 +360,13 @@ document.querySelectorAll("#yupWindow button").forEach((b) => (b.onclick = () =>
   state.all = []; state.topId = ""; state.listSig = ""; renderView();
   load();
 }));
+document.getElementById("upNextTrack")?.addEventListener("click", (e) => {
+  const chip = e.target.closest(".un-chip");
+  if (!chip) return;
+  state.jumpId = chip.dataset.id;
+  state.topId = "";
+  renderView();
+});
 $("#slipToggle").onclick = () => $("#slipPanel").classList.add("open");
 $("#slipClose").onclick = () => $("#slipPanel").classList.remove("open");
 
