@@ -182,14 +182,60 @@ function seriesFor(id) {
 }
 function paintSparks() {
   document.querySelectorAll("[data-spark]").forEach((el) => {
-    const s = seriesFor(el.getAttribute("data-spark"));
+    const id = el.getAttribute("data-spark");
+    const s = seriesFor(id);
     el.innerHTML = (s && s.series.length >= 2) ? sparkCard(s.series, s.delta) : "";
+    const card = el.closest(".card");
+    if (card) card.classList.toggle("hot", isHot(id));
   });
   document.querySelectorAll("[data-mv]").forEach((el) => {
-    const s = seriesFor(el.getAttribute("data-mv"));
-    el.innerHTML = (s && s.series.length >= 2) ? mvBadge(s.delta) : "";
+    const id = el.getAttribute("data-mv");
+    const s = seriesFor(id);
+    const hot = isHot(id);
+    el.innerHTML = (s && s.series.length >= 2)
+      ? (hot ? `<span class="mv hotmv">🔥 ${s.delta > 0 ? "+" : ""}${s.delta}¢</span>` : mvBadge(s.delta))
+      : "";
+    const chip = el.closest(".un-chip"); if (chip) chip.classList.toggle("hot", hot);
+    const row = el.closest(".lrow"); if (row) row.classList.toggle("hot", hot);
   });
   paintLiveOdds();
+  checkMomentum();
+}
+
+// ── MOVING NOW: real-time momentum alerts ───────────────────────────────
+const HOT_CENTS = 10;          // a move this big (¢) over the recent window = 🔥 MOVING
+const HOT_COOLDOWN = 180000;   // don't re-alert the same market within 3 min
+const alerted = {};            // id -> last alert ts
+function recentMove(id) {
+  const s = seriesFor(id);
+  if (!s || s.series.length < 2) return 0;
+  const arr = s.series, back = Math.min(arr.length - 1, 4); // ~last few minutes
+  return Math.round((arr[arr.length - 1] - arr[arr.length - 1 - back]) * 100);
+}
+function isHot(id) { return Math.abs(recentMove(id)) >= HOT_CENTS; }
+function checkMomentum() {
+  const now = Date.now();
+  const ids = new Set([...Object.keys(state.spark), ...Object.keys(state.tick)]);
+  for (const id of ids) {
+    const card = state.all.find((c) => c.id === id);
+    if (!card || card.close_ts - nowTs() <= 1) continue;
+    const mv = recentMove(id);
+    if (Math.abs(mv) < HOT_CENTS) continue;
+    if (now - (alerted[id] || 0) < HOT_COOLDOWN) continue;
+    alerted[id] = now;
+    momToast(card, mv);
+  }
+}
+function momToast(card, mv) {
+  const wrap = $("#yupToasts"); if (!wrap) return;
+  const up = mv > 0, pct = Math.round((card.yes_price || 0) * 100);
+  const el = document.createElement("a");
+  el.className = "yt hot"; el.href = card.link || "#"; el.target = "_blank"; el.rel = "noopener";
+  el.innerHTML = `<span class="tag hot">🔥</span><span class="txt"><b>MOVING</b> · ${esc(card.title)} · YES ${pct}¢ <span class="${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${mv}¢</span></span><span class="go">Trade ↗</span>`;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add("in"));
+  setTimeout(() => { el.classList.remove("in"); setTimeout(() => el.remove(), 300); }, 5000);
+  while (wrap.children.length > 3) wrap.firstElementChild.remove();
 }
 
 // ── swipe deck ────────────────────────────────────────────────────────
