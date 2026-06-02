@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIVE — In-play momentum · $EDGE</title>
+<meta name="description" content="Every live, fast-moving prediction market across Polymarket + Kalshi — ranked by real-time momentum. See what's running, right now.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.thepolyedge.com/live.html">
+<link rel="canonical" href="https://www.thepolyedge.com/live.html">
+<meta property="og:title" content="EDGE LIVE — in-play momentum">
+<meta property="og:description" content="Every live market across Polymarket + Kalshi, ranked by real-time momentum. The movers, the second they move.">
+<meta property="og:image" content="https://www.thepolyedge.com/og-share.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050507">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/lib/client/elite.css">
+<script defer src="/lib/client/elite.js"></script>
+<script defer src="/lib/client/ticker.js"></script>
+<script defer src="/lib/client/palette.js"></script>
+
+<style>
+:root {
+  --void: #050507; --void-2: #0c0c10; --void-3: #141418; --void-4: #1c1c22;
+  --lime: #C4FF00; --magenta: #FF006E; --green: #00FF85; --amber: #FFB800;
+  --red: #FF3344; --white: #F5F5F0; --muted: #6B6B73;
+  --border: rgba(245,245,240,0.08); --border-bright: rgba(196,255,0,0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--void); color: var(--white); font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: -20%; z-index: 0; pointer-events: none;
+  background: radial-gradient(40% 40% at 15% 10%, rgba(255,51,68,.08), transparent 70%),
+              radial-gradient(40% 40% at 85% 90%, rgba(196,255,0,.08), transparent 70%);
+  filter: blur(20px);
+}
+header, main { position: relative; z-index: 2; }
+main.live { max-width: 1180px; margin: 0 auto; padding: 22px 16px 70px; }
+
+/* hero */
+.live-hero { text-align: center; padding: 8px 0 18px; }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--red);
+  border: 1px solid rgba(255,51,68,.35); border-radius: 100px; padding: 5px 14px; background: rgba(255,51,68,.06);
+}
+.live-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); animation: lpulse 1.2s infinite; }
+@keyframes lpulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.7); } }
+.live-h1 { font-family: 'Anton', sans-serif; font-size: clamp(40px, 9vw, 76px); line-height: .95; letter-spacing: -.01em; margin: 12px 0 6px; }
+.live-h1 .accent { color: var(--lime); }
+.live-sub { color: var(--muted); font-size: 14px; max-width: 540px; margin: 0 auto; line-height: 1.5; }
+.live-sub b { color: var(--white); }
+
+/* stat strip */
+.live-stats { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex-wrap: wrap; }
+.live-stats .s { color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.live-stats .s b { color: var(--white); }
+.live-stats .s.hot b { color: var(--amber); }
+.live-stats .sep { opacity: .35; }
+
+/* controls */
+.live-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px 0 18px; flex-wrap: wrap; }
+.seg { display: inline-flex; gap: 3px; background: var(--void-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+.seg button { background: transparent; border: none; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 7px; cursor: pointer; transition: .15s; }
+.seg button:hover:not(.active) { color: var(--white); }
+.seg button.active { color: var(--void); background: var(--lime); }
+.seg.win button.active { background: var(--void-4); color: var(--lime); box-shadow: inset 0 0 0 1px var(--border-bright); }
+
+/* grid */
+.live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: 14px; }
+.live-empty, .live-loading { grid-column: 1 / -1; text-align: center; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 60px 20px; }
+
+.live-card {
+  position: relative; overflow: hidden; text-decoration: none; color: inherit;
+  background: linear-gradient(165deg, var(--void-3), var(--void-2));
+  border: 1px solid var(--border); border-radius: 16px; padding: 15px;
+  display: flex; flex-direction: column; gap: 10px; transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.live-card:hover { transform: translateY(-3px); border-color: var(--border-bright); }
+.live-card.hot { border-color: var(--amber); animation: cardhot 1.3s ease-in-out infinite; }
+@keyframes cardhot { 0%,100% { box-shadow: 0 0 0 1px rgba(255,184,0,.4), 0 0 26px rgba(255,184,0,.14); } 50% { box-shadow: 0 0 0 1px var(--amber), 0 0 46px rgba(255,184,0,.32); } }
+
+.lc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lc-cat { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.lc-cat .emoji { font-size: 15px; }
+.lc-cat b { color: var(--white); }
+.lc-ven { font-size: 9px; opacity: .7; }
+.lc-cd { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--lime); white-space: nowrap; flex: 0 0 auto; }
+.lc-cd.warn { color: var(--amber); } .lc-cd.urgent { color: var(--red); }
+
+.lc-q { font-weight: 700; font-size: 15px; line-height: 1.28; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 38px; }
+
+.lc-spark { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.lc-spark svg { width: 100%; height: 30px; flex: 1 1 auto; }
+.lc-spark:empty { display: none; }
+.lc-mv { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; flex: 0 0 auto; }
+.lc-mv.up { color: var(--green); } .lc-mv.down { color: var(--magenta); } .lc-mv.flat { color: var(--muted); font-weight: 400; }
+.lc-mv.hot { color: var(--amber); }
+
+.lc-odds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lc-odd { border-radius: 10px; padding: 9px; text-align: center; border: 1px solid var(--border); background: var(--void-2); }
+.lc-odd .p { font-family: 'Anton', sans-serif; font-size: 22px; line-height: 1; display: block; }
+.lc-odd .l { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 3px; display: block; }
+.lc-odd.no .p { color: var(--magenta); } .lc-odd.yes .p { color: var(--green); }
+
+.lc-foot { display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+.lc-trade { color: var(--lime); font-weight: 700; }
+
+/* moving-now toasts */
+.live-toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: calc(100% - 28px); max-width: 460px; }
+.lt { pointer-events: auto; background: rgba(12,12,16,.97); border: 1px solid var(--amber); border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 11px; box-shadow: 0 0 30px rgba(255,184,0,.25), 0 14px 40px rgba(0,0,0,.6); transform: translateY(16px); opacity: 0; transition: transform .28s, opacity .28s; width: 100%; text-decoration: none; }
+.lt.in { transform: translateY(0); opacity: 1; }
+.lt .tag { font-size: 19px; } .lt .txt { flex: 1; min-width: 0; font-size: 12px; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .lt .txt b { color: var(--amber); } .lt .go { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); white-space: nowrap; }
+.lt .txt .up { color: var(--green); } .lt .txt .down { color: var(--magenta); }
+
+@media (max-width: 560px) { .live-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .live-card { padding: 12px; } .lc-q { font-size: 13px; min-height: 34px; } .lc-odd .p { font-size: 19px; } }
+@media (max-width: 380px) { .live-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+
+<header class="elite-nav site-nav">
+  <a class="logo" href="/"><span class="dollar">$</span><span class="word">EDGE</span></a>
+  <nav><ul></ul></nav>
+  <div class="nav-right">
+    <a class="btn btn-app" href="/dashboard.html">Dashboard</a>
+    <a class="btn btn-ghost" href="/token.html">Buy $EDGE</a>
+  </div>
+</header>
+
+<main class="live">
+  <div class="live-hero">
+    <span class="live-badge"><span class="dot"></span>Live · in-play</span>
+    <h1 class="live-h1">EDGE <span class="accent">LIVE</span></h1>
+    <div class="live-sub">Every fast-moving market across <b>Polymarket + Kalshi</b>, ranked by <b>real-time momentum</b>. The movers — the second they move.</div>
+    <div class="live-stats" id="liveStats">
+      <span class="s"><span style="color:var(--red)">●</span> <b id="lsCount">—</b> live markets</span>
+      <span class="sep">·</span>
+      <span class="s hot">🔥 <b id="lsHot">0</b> moving now</span>
+      <span class="sep">·</span>
+      <span class="s">updated <b id="lsAgo">live</b></span>
+    </div>
+  </div>
+
+  <div class="live-controls">
+    <div class="seg" id="kindSeg">
+      <button data-k="all" class="active">All</button>
+      <button data-k="sport">🏆 Sports</button>
+      <button data-k="crypto">🪙 Crypto</button>
+    </div>
+    <div class="seg win" id="winSeg">
+      <button data-h="1">1H</button>
+      <button data-h="6" class="active">6H</button>
+      <button data-h="24">24H</button>
+    </div>
+  </div>
+
+  <div class="live-grid" id="liveGrid">
+    <div class="live-loading">Loading the live board…</div>
+  </div>
+</main>
+
+<div class="live-toasts" id="liveToasts"></div>
+
+<script type="module" src="/live.js"></script>
+</body>
+</html>
