@@ -4,6 +4,37 @@ How the suite makes money, and how that money makes $EDGE scarcer. This is where
 copy-trading becomes the **demand engine for the token** — far bigger than the
 current affiliate model.
 
+## ⚠️ Sequencing: build token-decoupled, tokenize later ("drop the hammer")
+
+**Decision (Rob, June 2026):** we ship the entire product **with no token involved.**
+It is used and traded purely in **USDC**. The $EDGE flywheel below is **designed-in
+but switched off** until we deliberately turn it on later.
+
+This is a deliberate two-phase play:
+
+| | **Phase A — Token OFF (launch)** | **Phase B — Token ON ("drop the hammer")** |
+|---|---|---|
+| Fee currency | USDC | USDC (unchanged) |
+| Fee destination | 100% → treasury | split: buy-&-burn $EDGE / treasury |
+| Tiers | flat (or USDC-priced) | hold-$EDGE tiers: lower fees / more follows / higher caps |
+| What changes in code | — | flip `TOKENOMICS_ENABLED=true` + run the buy-burn worker |
+
+**Why decouple:** (1) cleaner regulatory story at launch — a USDC trading tool, not a
+token scheme; (2) the token launches *onto proven volume + revenue*, so it's a demand
+magnet from day one instead of a launch-day liability; (3) we never block shipping the
+product on token/listing/legal timelines.
+
+**The engineering contract:** the seam lives in exactly two files in the backend —
+[`src/config.ts`](../backend/src/config.ts) (`TOKENOMICS_ENABLED`, default `false`) and
+[`src/fees/fee.ts`](../backend/src/fees/fee.ts) (`splitFee()`). Token off ⇒ `splitFee` returns
+`{ treasury: 100% }`; token on ⇒ it returns the burn split. **Nothing else in the codebase
+knows the token exists.** The `fee_ledger` table already carries a `burn_usd` column that
+stays `0` until the switch flips. Turning tokenomics on is a config change + a buy-burn
+worker, **not a refactor.**
+
+Everything below describes the **full** (Phase B) design. Read it as "what we switch on
+later," with Phase A = the same minus the burn split and the $EDGE tiers.
+
 ## Fee models (use a combo)
 
 | Model | Mechanism | Pros | Cons |
@@ -16,15 +47,23 @@ current affiliate model.
 volume engine) **plus** a token-gated tier ladder (the recurring + token-demand
 engine). Add C only if/when a custodial vault product is greenlit.
 
-## How the fee is captured
+## How the fee is captured — ✅ SOLVED by Polymarket Builder Codes
 
-- **Managed / Telegram (Model B custody):** trivial — the bot controls the wallet,
-  so it deducts the fee from the trade notional at execution and routes it to the
-  treasury. No extra contract needed.
-- **Web connect-wallet (Model A):** can't skim a CLOB trade directly. Either (a)
-  gate the feature behind a $EDGE subscription (no per-trade fee), or (b) route the
-  user's trade USDC through a thin **EDGE router contract** that takes the fee then
-  funds the order. Router = one small audited contract.
+> **Update (June 2026 audit):** the capture problem below is **solved natively.**
+> Polymarket runs a self-serve **Builder Fees** program: attach our builder code to
+> each order and Polymarket settles `builder_fee = notional × bps / 10000` on top of
+> their own fees — **up to 100 bps taker / 50 bps maker**, at the no-approval
+> "Unverified" tier. **No custodial skim and no router contract required, and it works
+> with non-custodial connect-wallet (Model A).** See [`06-FEE-MODEL-DECISION.md`](06-FEE-MODEL-DECISION.md).
+
+- **Web connect-wallet (Model A):** ~~can't skim a CLOB trade directly~~ → **attach the
+  builder code; fee captured natively. No router contract, no custody needed to monetize.**
+- **Managed / Telegram (Model B/C):** same builder code; the bot also controls the
+  wallet, so capture is doubly assured. Custody here is for one-tap UX, not the fee.
+
+*(The legacy options — a $EDGE subscription gate or a thin EDGE router contract — are
+no longer needed for capture. Keep the router idea only if we later want to skim a
+non-Polymarket venue.)*
 
 ## The buy-and-burn loop (ties into the existing deflationary design)
 

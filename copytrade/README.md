@@ -6,8 +6,21 @@
 > do all of it from a Telegram bot — with a fee on every trade that buys + burns
 > $EDGE.
 
-**Status:** planning. Nothing here ships until the custody + regulatory + geo
-decisions in [05-INFRA-SECURITY-ROADMAP.md](05-INFRA-SECURITY-ROADMAP.md#decisions) are made.
+**Status:** building. Phase 0 backend scaffold is live in [`../backend/`](../backend/).
+
+**Two decisions now locked (June 2026):**
+1. **Token-decoupled launch.** The product ships and is traded in **pure USDC with no
+   token involved**; the $EDGE flywheel is designed-in but switched off behind one flag
+   (`TOKENOMICS_ENABLED=false`) and turned on later ("drop the hammer"). See
+   [04 §Sequencing](04-FEES-AND-TOKEN.md).
+2. **Fee model: 80 bps via Polymarket Builder Codes.** The fee-capture rail exists
+   natively — **no custody, no router contract, works with connect-wallet.** See
+   [06-FEE-MODEL-DECISION.md](06-FEE-MODEL-DECISION.md).
+
+The remaining gates before real money flows are the **custody + regulatory + geo**
+decisions in [05-INFRA-SECURITY-ROADMAP.md](05-INFRA-SECURITY-ROADMAP.md#decisions) — note that
+builder-code fee capture means custody is now only needed for the one-tap Telegram/auto-copy
+*UX*, not for monetization.
 
 ---
 
@@ -77,6 +90,8 @@ long-running watchers, a signing keeper, or a Telegram bot. See
 | [03-TELEGRAM-BOT.md](03-TELEGRAM-BOT.md) | Bot UX, commands, managed wallets, inline copy buttons, auto-copy from chat |
 | [04-FEES-AND-TOKEN.md](04-FEES-AND-TOKEN.md) | Fee models, the $EDGE buy+burn flywheel, tier ladder, revenue math |
 | [05-INFRA-SECURITY-ROADMAP.md](05-INFRA-SECURITY-ROADMAP.md) | Backend service, DB, key custody, security, phased roadmap, effort, risks, **the decisions** |
+| [06-FEE-MODEL-DECISION.md](06-FEE-MODEL-DECISION.md) | **Locked fee model** (80 bps via builder codes, token-decoupled) + the competitive fee audit behind it |
+| [`../backend/`](../backend/) | **Phase 0 scaffold** — the always-on service: exec engine, custody abstraction, copy keeper, Telegram bot, token-agnostic fee ledger |
 
 ---
 
