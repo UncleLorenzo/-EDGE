@@ -205,6 +205,16 @@ function renderSmartTab() {
     </div>
   `;
   $("#tabHost").innerHTML = `
+    <section class="panel conviction-panel" id="smConvictionPanel">
+      <div class="section-head">
+        <h2><span class="conv-bolt">⚡</span> Highest <span class="accent">Conviction</span></h2>
+        <div class="meta conv-meta">smart money <b>+</b> momentum, agreeing — the sharpest signal on the board</div>
+      </div>
+      <div class="conv-rail" id="smConviction">
+        <div class="conv-watch">Scanning the tape… surfacing any market where a tracked sharp just bet <b>and</b> the price is running their way.</div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="section-head">
         <h2>Most <span class="accent">Profitable</span> Wallets</h2>
@@ -566,6 +576,69 @@ function paintSmSparks() {
     const a = el.getAttribute("data-pm"), s = a && sp[a];
     el.innerHTML = (s && s.series.length >= 2) ? smSparkSvg(s.series, s.delta) + smMv(s.delta) : "";
   });
+  renderConviction();
+}
+
+// ── CONVICTION: a tracked sharp bet a market that's running their way ──
+// The single highest-conviction read on the board — smart money AND momentum
+// pointing the same direction. Scored on momentum × size × wallet rank × recency.
+function recentMovePm(asset) {
+  const s = state.smart.spark[asset];
+  if (!s || s.series.length < 2) return null;
+  const arr = s.series, back = Math.min(arr.length - 1, 4); // ~last 2h @ 30-min fidelity
+  return Math.round((arr[arr.length - 1] - arr[arr.length - 1 - back]) * 100);
+}
+function convictionOf(t) {
+  if (!t.asset || !state.smart.spark[t.asset]) return null;
+  const mv = recentMovePm(t.asset);
+  if (mv == null) return null;
+  const buy = t.side === "BUY";
+  const aligned = (buy && mv > 0) || (!buy && mv < 0); // market moving the way they bet
+  if (!aligned) return null;
+  const mag = Math.abs(mv);
+  if (mag < 6 || (t.usd || 0) < 250) return null;      // real momentum + real size (filters dust)
+  const ageMin = (Date.now() / 1000 - (t.timestamp || 0)) / 60;
+  if (ageMin > 90) return null;                         // still fresh
+  const credF = t.cred_rank ? (51 - Math.min(50, t.cred_rank)) / 50 + 0.4 : 0.5; // 0.4..1.4
+  const recF = Math.max(0.2, 1 - ageMin / 90);
+  return { mv, mag, ageMin, score: mag * Math.log10(10 + (t.usd || 0)) * credF * recF };
+}
+function computeConviction() {
+  const best = new Map(); // asset|wallet -> strongest qualifying trade
+  for (const t of state.smart.alerts.values()) {
+    const c = convictionOf(t);
+    if (!c) continue;
+    const k = t.asset + "|" + t.wallet, ex = best.get(k);
+    if (!ex || c.score > ex.c.score) best.set(k, { t, c });
+  }
+  return [...best.values()].sort((a, b) => b.c.score - a.c.score).slice(0, 4);
+}
+function convCard({ t, c }) {
+  const sp = state.smart.spark[t.asset], up = c.mv > 0;
+  const spark = sp ? smSparkSvg(sp.series, c.mv) : "";
+  const av = t.image ? `<img src="${escapeAttr(t.image)}" alt="" loading="lazy">` : escapeHtml((t.name || t.wallet || "?")[0].toUpperCase());
+  return `<a class="conv-card ${up ? "up" : "down"}" href="?wallet=${escapeAttr(t.wallet)}">
+    <div class="conv-top">
+      <div class="conv-av">${av}</div>
+      <div class="conv-who"><div class="cn">${escapeHtml(t.name || short(t.wallet, 6))}</div><div class="cr"><span class="rk">#${t.cred_rank} ${WIN_SHORT[t.cred_window] || ""}</span> · <span class="pnl">${pnlUsd(t.cred_pnl)}</span></div></div>
+      <div class="conv-badge">🎯</div>
+    </div>
+    <div class="conv-bet"><b class="${t.side === "BUY" ? "buy" : "sell"}">${t.side} ${escapeHtml(t.outcome || "")}</b> @ ${(t.price * 100).toFixed(0)}¢ · ${fmtUsd(t.usd)}</div>
+    <div class="conv-mkt" title="${escapeAttr(t.market_title || "")}">${escapeHtml((t.market_title || "").slice(0, 70))}</div>
+    <div class="conv-spark">${spark}<span class="conv-mv ${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${c.mv}¢ · last 2h</span></div>
+    <div class="conv-verdict">🟢 Smart money + momentum aligned · ${fmtAgo(t.timestamp)} ago</div>
+  </a>`;
+}
+function renderConviction() {
+  const host = $("#smConviction"); if (!host) return;
+  const top = computeConviction(), panel = $("#smConvictionPanel");
+  if (!top.length) {
+    if (panel) panel.classList.remove("hot");
+    host.innerHTML = `<div class="conv-watch">Scanning the tape… surfacing any market where a tracked sharp just bet <b>and</b> the price is running their way.</div>`;
+    return;
+  }
+  if (panel) panel.classList.add("hot");
+  host.innerHTML = top.map(convCard).join("");
 }
 let _smSparkAt = 0, _smSparkSig = "";
 function scheduleSmSparks() {

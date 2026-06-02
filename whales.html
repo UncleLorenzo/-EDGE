@@ -631,6 +631,43 @@ footer a { color: var(--lime); text-decoration: none; }
 @keyframes sm-sparktip { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 .sm-mv { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; white-space: nowrap; letter-spacing: .02em; }
 .sm-mv.up { color: var(--green); } .sm-mv.down { color: var(--red); } .sm-mv.flat { color: var(--muted); font-weight: 400; }
+
+/* ── CONVICTION rail — smart money + momentum aligned (the hero signal) ── */
+.conviction-panel { position: relative; border: 1px solid rgba(196,255,0,.18); }
+.conviction-panel.hot { border-color: rgba(196,255,0,.4); box-shadow: 0 0 44px rgba(196,255,0,.07); }
+.conv-bolt { color: var(--lime); }
+.conviction-panel.hot .conv-bolt { animation: convbolt 1.3s ease-in-out infinite; display: inline-block; }
+@keyframes convbolt { 0%,100% { opacity: 1; text-shadow: 0 0 12px rgba(196,255,0,.6); } 50% { opacity: .55; text-shadow: 0 0 4px rgba(196,255,0,.25); } }
+.conv-meta b { color: var(--lime); }
+.conv-rail { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 12px; }
+.conv-watch { grid-column: 1 / -1; text-align: center; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 22px 16px; }
+.conv-watch b { color: var(--white); }
+.conv-card {
+  display: block; text-decoration: none; position: relative; overflow: hidden;
+  background: linear-gradient(165deg, var(--void-3), var(--void-2));
+  border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.conv-card.up { border-color: rgba(0,255,133,.32); }
+.conv-card.up:hover { box-shadow: 0 0 28px rgba(0,255,133,.12); }
+.conv-card.down { border-color: rgba(255,51,68,.32); }
+.conv-card:hover { transform: translateY(-3px); }
+.conv-top { display: flex; align-items: center; gap: 10px; }
+.conv-av { width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; overflow: hidden; background: var(--void-3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 13px; color: var(--lime); }
+.conv-av img { width: 100%; height: 100%; object-fit: cover; }
+.conv-who { min-width: 0; }
+.conv-who .cn { color: var(--white); font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-who .cr { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 1px; }
+.conv-who .cr .rk { color: var(--muted); } .conv-who .cr .pnl { color: var(--green); }
+.conv-badge { margin-left: auto; font-size: 17px; filter: drop-shadow(0 0 6px rgba(196,255,0,.5)); }
+.conv-bet { margin-top: 11px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--white); }
+.conv-bet b.buy { color: var(--green); } .conv-bet b.sell { color: var(--red); }
+.conv-mkt { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.conv-spark { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.conv-mv { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.conv-mv.up { color: var(--green); } .conv-mv.down { color: var(--red); }
+.conv-verdict { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--green); }
+@media (max-width: 640px) { .conv-rail { grid-template-columns: 1fr; } }
 .sm-tact { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; text-align: right; }
 .sm-tact.buy { color: var(--green); }
 .sm-tact.sell { color: var(--red); }
