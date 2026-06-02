@@ -130,6 +130,9 @@ async function fetchKalshi() {
     const title =
       sub && !/^(yes|no)$/i.test(sub) ? `${e.title} — ${sub}` : e.title || top.title || "";
 
+    // skip Kalshi multi-game parlays — their titles are concatenated leg junk
+    if (/kxmve|multigame|crosscategory|multimarket/i.test(`${e.event_ticker || ""} ${e.series_ticker || ""}`) || (title.match(/,\s*(yes|no)\b/gi) || []).length >= 2) continue;
+
     out.push({
       id: `kalshi_${e.event_ticker}`,
       source: "kalshi",
