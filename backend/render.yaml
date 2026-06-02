@@ -1,0 +1,24 @@
+# Render blueprint for the $EDGE backend (or adapt for Railway/Fly). One web service +
+# managed Postgres + Redis. Secrets are set in the dashboard, NOT here.
+services:
+  - type: web
+    name: edge-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase: { name: edge-pg, property: connectionString }
+      - key: REDIS_URL
+        fromService: { type: redis, name: edge-redis, property: connectionString }
+      # All other secrets (POLYGON_RPC_URL, BUILDER_CODE, custody vendor, TELEGRAM_BOT_TOKEN,
+      # VENUE_*_ENABLED, etc.) are set in the dashboard at go-live. See GO-LIVE.md.
+databases:
+  - name: edge-pg
+    plan: starter
+services_redis:
+  - type: redis
+    name: edge-redis
+    plan: starter

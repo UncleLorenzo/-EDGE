@@ -72,9 +72,30 @@ export const config = {
     globalMaxOpenExposureUsd: num(env.GLOBAL_MAX_OPEN_EXPOSURE_USD, 100_000),
   },
 
+  /**
+   * Venue segmentation (see copytrade/07-VENUE-AND-COMPLIANCE.md). US users route to
+   * the light/referral path on Polymarket US (no custody, no signing); everyone else
+   * (non-US, non-sanctioned) routes to the managed builder-fee product on International.
+   * Both halves only turn on when their `*Enabled` flag is flipped at go-live.
+   */
+  venue: {
+    intlEnabled: bool(env.VENUE_INTL_ENABLED, false), // the non-US managed bot (partner-hosted)
+    usEnabled: bool(env.VENUE_US_ENABLED, false),     // the US referral/IB path
+    // EDGE's Polymarket US referral/IB code (US-side monetization; no builder fee on US).
+    usReferralCode: env.US_REFERRAL_CODE ?? '',
+    // Polymarket US public site for deep-links (US users trade in their own account).
+    usSiteUrl: env.US_SITE_URL ?? 'https://polymarket.us',
+  },
+
   telegram: {
     botToken: env.TELEGRAM_BOT_TOKEN ?? '',
     webhookUrl: env.TELEGRAM_WEBHOOK_URL ?? '',
+  },
+
+  /** The copy signal comes from EDGE's existing sharp feed (the intelligence moat). */
+  signals: {
+    edgeFeedUrl: env.EDGE_FEED_URL ?? 'https://www.thepolyedge.com/api/whales/sharp',
+    pollMs: num(env.SIGNAL_POLL_MS, 4_000),
   },
 } as const;
 
