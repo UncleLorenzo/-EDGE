@@ -167,7 +167,7 @@ function eagleRow(e) {
   const cp = e.counterparty ? `→ <span class="ee-cp">${short(e.counterparty, 5)}</span>` : "";
   const venue = e.venue_label || e.venue || "transfer";
   const when = e.timestamp ? `${fmtAgo(e.timestamp)} ago` : e.block ? `blk ${e.block}` : "recent";
-  return `<a class="ee-row" href="?wallet=${escapeAttr(e.wallet)}">
+  return `<a class="ee-row" href="/u.html?w=${escapeAttr(e.wallet)}">
     <span class="ee-chain c-${escapeAttr(e.chain || "polygon")}">${escapeHtml(e.chain_sym || "POL")}</span>
     <div class="ee-who"><div class="n">${escapeHtml(e.name || short(e.wallet, 6))}</div><div class="w">${short(e.wallet, 8)}</div></div>
     <div class="ee-act"><b class="${dir}">${dir.toUpperCase()}</b> ${amt} ${escapeHtml(e.token || "")}</div>
@@ -348,7 +348,7 @@ function smRow(w) {
   const av = w.image
     ? `<img src="${escapeAttr(w.image)}" alt="" loading="lazy">`
     : escapeHtml((w.name || w.wallet || "?")[0].toUpperCase());
-  return `<a class="sm-row${top}" href="?wallet=${escapeAttr(w.wallet)}">
+  return `<a class="sm-row${top}" href="/u.html?w=${escapeAttr(w.wallet)}">
     <div class="sm-rank">${w.rank}</div>
     <div class="sm-av">${av}</div>
     <div class="sm-id"><div class="n">${escapeHtml(w.name || short(w.wallet, 8))}</div><div class="w">${short(w.wallet, 8)}</div></div>
@@ -536,7 +536,7 @@ function smTapeRow(t) {
     ? `<img src="${escapeAttr(t.image)}" alt="" loading="lazy">`
     : escapeHtml((t.name || t.wallet || "?")[0].toUpperCase());
   const cred = `<span class="rk">#${t.cred_rank} ${WIN_SHORT[t.cred_window] || ""}</span> · <span class="pnl">${pnlUsd(t.cred_pnl)}</span>`;
-  return `<a class="sm-tape-row" href="?wallet=${escapeAttr(t.wallet)}">
+  return `<a class="sm-tape-row" href="/u.html?w=${escapeAttr(t.wallet)}">
     <div class="sm-tw">
       <div class="sm-tav">${av}</div>
       <div class="sm-tid"><div class="n">${escapeHtml(t.name || short(t.wallet, 6))}</div><div class="sm-cred">${cred}</div></div>
@@ -617,7 +617,7 @@ function convCard({ t, c }) {
   const sp = state.smart.spark[t.asset], up = c.mv > 0;
   const spark = sp ? smSparkSvg(sp.series, c.mv) : "";
   const av = t.image ? `<img src="${escapeAttr(t.image)}" alt="" loading="lazy">` : escapeHtml((t.name || t.wallet || "?")[0].toUpperCase());
-  return `<a class="conv-card ${up ? "up" : "down"}" href="?wallet=${escapeAttr(t.wallet)}">
+  return `<a class="conv-card ${up ? "up" : "down"}" href="/u.html?w=${escapeAttr(t.wallet)}">
     <div class="conv-top">
       <div class="conv-av">${av}</div>
       <div class="conv-who"><div class="cn">${escapeHtml(t.name || short(t.wallet, 6))}</div><div class="cr"><span class="rk">#${t.cred_rank} ${WIN_SHORT[t.cred_window] || ""}</span> · <span class="pnl">${pnlUsd(t.cred_pnl)}</span></div></div>

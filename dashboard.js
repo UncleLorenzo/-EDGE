@@ -317,7 +317,7 @@ function updateRefreshDots() {
 document.addEventListener("click", (e) => {
   const row = e.target.closest("[data-wallet]");
   if (row) {
-    location.href = `/whales.html?wallet=${row.dataset.wallet}`;
+    location.href = `/u.html?w=${row.dataset.wallet}`;
     return;
   }
   const link = e.target.closest("[data-url]");
@@ -550,7 +550,7 @@ function fireToast(t) {
     <button class="toast-x" type="button" aria-label="dismiss">×</button>`;
   const dismiss = () => { el.classList.add("out"); setTimeout(() => el.remove(), 320); };
   el.querySelector(".toast-x").addEventListener("click", (e) => { e.stopPropagation(); dismiss(); });
-  el.addEventListener("click", () => { location.href = `/whales.html?wallet=${t.wallet}`; });
+  el.addEventListener("click", () => { location.href = `/u.html?w=${t.wallet}`; });
   wrap.appendChild(el);
   requestAnimationFrame(() => el.classList.add("in"));
   setTimeout(dismiss, 9000);

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Feed · $EDGE</title>
+<meta name="description" content="Your personal feed of prediction-market bets — every move from the traders you follow on $EDGE, live.">
+<meta name="theme-color" content="#050507">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/lib/client/elite.css">
+<script defer src="/lib/client/elite.js"></script>
+<script defer src="/lib/client/ticker.js"></script>
+<script defer src="/lib/client/palette.js"></script>
+<style>
+:root {
+  --void: #050507; --void-2: #0c0c10; --void-3: #141418; --void-4: #1c1c22;
+  --lime: #C4FF00; --magenta: #FF006E; --green: #00FF85; --amber: #FFB800;
+  --red: #FF3344; --white: #F5F5F0; --muted: #6B6B73;
+  --border: rgba(245,245,240,0.08); --border-bright: rgba(196,255,0,0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--void); color: var(--white); font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: -20%; z-index: 0; pointer-events: none; background: radial-gradient(38% 32% at 70% 0%, rgba(196,255,0,.06), transparent 70%); filter: blur(24px); }
+header, main { position: relative; z-index: 2; }
+main.feed { max-width: 700px; margin: 0 auto; padding: 24px 16px 80px; }
+a { color: inherit; }
+
+.feed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 2px 18px; flex-wrap: wrap; }
+.feed-h1 { font-family: 'Anton', sans-serif; font-size: clamp(30px, 7vw, 46px); line-height: 1; }
+.feed-h1 .accent { color: var(--lime); }
+.feed-sub { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-top: 7px; }
+.feed-sub b { color: var(--white); }
+.feed-find { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--void); background: var(--lime); border-radius: 100px; padding: 9px 16px; white-space: nowrap; }
+
+.feed-body { display: flex; flex-direction: column; gap: 8px; }
+.fr { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; background: var(--void-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; transition: border-color .15s; }
+.fr:hover { border-color: var(--border-bright); }
+.fr-av { width: 38px; height: 38px; border-radius: 50%; flex: 0 0 auto; overflow: hidden; background: var(--void-4); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 15px; color: var(--lime); text-decoration: none; }
+.fr-av img { width: 100%; height: 100%; object-fit: cover; }
+.fr-mid { min-width: 0; }
+.fr-line1 { font-size: 13px; }
+.fr-who { color: var(--white); font-weight: 700; text-decoration: none; } .fr-who:hover { color: var(--lime); }
+.fr-act { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
+.fr-act.buy { color: var(--green); } .fr-act.sell { color: var(--magenta); }
+.fr-mkt { color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fr-amt { text-align: right; white-space: nowrap; }
+.fr-amt .v { font-family: 'Anton', sans-serif; font-size: 17px; }
+.fr-amt .t { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); display: block; }
+
+.feed-empty { text-align: center; padding: 50px 22px; border: 1px dashed var(--border-bright); border-radius: 18px; background: rgba(196,255,0,.02); }
+.feed-empty .ico { font-size: 40px; }
+.feed-empty h3 { font-family: 'Anton', sans-serif; font-size: 24px; text-transform: uppercase; margin: 12px 0 8px; }
+.feed-empty p { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto 18px; }
+.feed-empty .cta { display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.feed-empty a { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-decoration: none; border-radius: 100px; padding: 10px 18px; }
+.feed-empty a.p { background: var(--lime); color: var(--void); } .feed-empty a.s { border: 1px solid var(--border); color: var(--white); }
+.feed-loading { text-align: center; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 50px; }
+</style>
+</head>
+<body>
+<header class="elite-nav site-nav">
+  <a class="logo" href="/"><span class="dollar">$</span><span class="word">EDGE</span></a>
+  <nav><ul></ul></nav>
+  <div class="nav-right">
+    <a class="btn btn-app" href="/whales.html">Find traders</a>
+    <a class="btn btn-ghost" href="/token.html">Buy $EDGE</a>
+  </div>
+</header>
+
+<main class="feed">
+  <div class="feed-head">
+    <div>
+      <div class="feed-h1">Your <span class="accent">Feed</span></div>
+      <div class="feed-sub" id="feedSub">Loading…</div>
+    </div>
+    <a class="feed-find" href="/whales.html">+ Find traders</a>
+  </div>
+  <div class="feed-body" id="feedBody"><div class="feed-loading">Loading your feed…</div></div>
+</main>
+
+<script type="module" src="/feed.js"></script>
+</body>
+</html>
