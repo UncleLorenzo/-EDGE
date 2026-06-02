@@ -622,7 +622,15 @@ footer a { color: var(--lime); text-decoration: none; }
 .sm-cred { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .02em; margin-top: 2px; }
 .sm-cred .rk { color: var(--muted); }
 .sm-cred .pnl { color: var(--green); }
-.sm-tmkt { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-tmkt { min-width: 0; }
+.sm-tmkt-q { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-tspark { display: flex; align-items: center; gap: 9px; margin-top: 5px; height: 22px; }
+.sm-tspark:empty { display: none; }
+.sm-spark { width: 120px; height: 22px; flex: 0 0 auto; }
+.sm-spark circle { animation: sm-sparktip 1.5s ease-in-out infinite; }
+@keyframes sm-sparktip { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+.sm-mv { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; white-space: nowrap; letter-spacing: .02em; }
+.sm-mv.up { color: var(--green); } .sm-mv.down { color: var(--red); } .sm-mv.flat { color: var(--muted); font-weight: 400; }
 .sm-tact { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; text-align: right; }
 .sm-tact.buy { color: var(--green); }
 .sm-tact.sell { color: var(--red); }

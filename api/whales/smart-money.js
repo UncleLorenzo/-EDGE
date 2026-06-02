@@ -96,6 +96,7 @@ export default async function handler(req, res) {
         market_title: t.title,
         market_slug: t.slug,
         event_slug: t.eventSlug,
+        asset: t.asset, // clobTokenId of the traded outcome → live price-action sparkline
         icon: t.icon,
         tx_hash: t.transactionHash,
         cred_rank: c.rank,

@@ -27,6 +27,7 @@ const state = {
     kvTrades: null,
     kvPersistent: false,
     prefs: loadSharpPrefs(),
+    spark: {},        // asset(clobTokenId) -> {series,delta,last} price-action history
   },
 };
 
@@ -303,6 +304,7 @@ async function loadSmart() {
     renderSmartBoard();
     processAlerts(data.tape || []);
     renderAlertsFeed();
+    paintSmSparks(); scheduleSmSparks();
   } catch (err) {
     const meta = $("#smBoardMeta"); if (meta) meta.textContent = "feed error";
     const b = $("#smBoard");
@@ -529,10 +531,58 @@ function smTapeRow(t) {
       <div class="sm-tav">${av}</div>
       <div class="sm-tid"><div class="n">${escapeHtml(t.name || short(t.wallet, 6))}</div><div class="sm-cred">${cred}</div></div>
     </div>
-    <div class="sm-tmkt" title="${escapeAttr(t.market_title || "")}">${escapeHtml((t.market_title || "").slice(0, 72))}</div>
+    <div class="sm-tmkt">
+      <div class="sm-tmkt-q" title="${escapeAttr(t.market_title || "")}">${escapeHtml((t.market_title || "").slice(0, 72))}</div>
+      <div class="sm-tspark" data-pm="${escapeAttr(t.asset || "")}"></div>
+    </div>
     <div class="sm-tact ${dir}">${t.side} ${escapeHtml(t.outcome || "")}</div>
     <div class="sm-tamt"><div class="v">${fmtUsd(t.usd)}</div><div class="t">${fmtAgo(t.timestamp)} ago · ${(t.price * 100).toFixed(0)}¢</div></div>
   </a>`;
+}
+
+// ── price-action sparklines on the sharp tape (Polymarket prices-history) ──
+function smSparkPath(series, w, h, pad) {
+  const min = Math.min(...series), max = Math.max(...series), range = (max - min) || 0.02, n = series.length;
+  const X = (i) => pad + (n === 1 ? 0 : (i / (n - 1)) * (w - 2 * pad));
+  const Y = (v) => h - pad - ((v - min) / range) * (h - 2 * pad);
+  let d = "";
+  series.forEach((v, i) => { d += (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1) + " "; });
+  return { d, lastX: X(n - 1), lastY: Y(series[n - 1]) };
+}
+function smMv(delta) {
+  if (!delta) return `<span class="sm-mv flat">● flat</span>`;
+  const up = delta > 0;
+  return `<span class="sm-mv ${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${delta}¢ · 24h</span>`;
+}
+function smSparkSvg(series, delta) {
+  const w = 120, h = 22, pad = 2;
+  const col = delta > 0 ? "var(--green)" : delta < 0 ? "var(--red)" : "var(--muted)";
+  const { d, lastX, lastY } = smSparkPath(series, w, h, pad);
+  return `<svg class="sm-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="1.8" fill="${col}"/></svg>`;
+}
+function paintSmSparks() {
+  const sp = state.smart.spark || {};
+  document.querySelectorAll(".sm-tspark[data-pm]").forEach((el) => {
+    const a = el.getAttribute("data-pm"), s = a && sp[a];
+    el.innerHTML = (s && s.series.length >= 2) ? smSparkSvg(s.series, s.delta) + smMv(s.delta) : "";
+  });
+}
+let _smSparkAt = 0, _smSparkSig = "";
+function scheduleSmSparks() {
+  const assets = [...new Set([...document.querySelectorAll(".sm-tspark[data-pm]")].map((e) => e.getAttribute("data-pm")).filter(Boolean))].slice(0, 16);
+  if (!assets.length) return;
+  const sig = assets.join(","), now = Date.now();
+  if (sig === _smSparkSig && now - _smSparkAt < 15000) return; // nothing new + still fresh
+  _smSparkSig = sig; _smSparkAt = now;
+  loadSmSparks(assets);
+}
+async function loadSmSparks(assets) {
+  try {
+    const r = await fetch("/api/spark?pm=" + encodeURIComponent(assets.join(",")));
+    const d = await r.json();
+    state.smart.spark = Object.assign(state.smart.spark || {}, d.pm || {});
+    paintSmSparks();
+  } catch {}
 }
 
 // ── LIVE ACTION TAB (firehose + active-whale leaderboard) ─────────────

@@ -52,19 +52,38 @@ async function kalshiSpark(ticker, now) {
   };
 }
 
+// One Polymarket outcome token → its implied-probability series over ~24h.
+// Used for the Smart Money sharp tape (price action next to the wallet).
+async function polySpark(asset) {
+  const url = `https://clob.polymarket.com/prices-history?market=${encodeURIComponent(asset)}&interval=1d&fidelity=30`;
+  const r = await fetchT(url);
+  if (!r || !r.ok) return null;
+  let d; try { d = await r.json(); } catch { return null; }
+  const pts = (d.history || []).map((x) => num(x.p)).filter((v) => v > 0 && v < 1);
+  if (pts.length < 2) return null;
+  const trimmed = pts.slice(-40);
+  const last = trimmed[trimmed.length - 1], first = trimmed[0];
+  return { series: trimmed, last, first, delta: Math.round((last - first) * 100), n: trimmed.length };
+}
+
 export default async function handler(req, res) {
   const url = new URL(req.url, "http://localhost");
   const ids = (url.searchParams.get("ids") || "")
     .split(",").map((s) => s.trim()).filter(Boolean).slice(0, 16);
+  const pmIds = (url.searchParams.get("pm") || "")
+    .split(",").map((s) => s.trim()).filter(Boolean).slice(0, 16);
   const now = Math.floor(Date.now() / 1000);
-  const spark = {};
+  const spark = {}, pm = {};
 
-  await Promise.all(
-    ids.filter((id) => id.startsWith("k_")).map(async (id) => {
+  await Promise.all([
+    ...ids.filter((id) => id.startsWith("k_")).map(async (id) => {
       try { const s = await kalshiSpark(id.slice(2), now); if (s) spark[id] = s; } catch {}
-    })
-  );
+    }),
+    ...pmIds.map(async (a) => {
+      try { const s = await polySpark(a); if (s) pm[a] = s; } catch {}
+    }),
+  ]);
 
-  res.setHeader("Cache-Control", "public, s-maxage=4, stale-while-revalidate=15");
-  res.status(200).json({ spark, server_now: now, count: Object.keys(spark).length });
+  res.setHeader("Cache-Control", "public, s-maxage=6, stale-while-revalidate=30");
+  res.status(200).json({ spark, pm, server_now: now, count: Object.keys(spark).length + Object.keys(pm).length });
 }
