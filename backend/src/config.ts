@@ -83,8 +83,9 @@ export const config = {
     usEnabled: bool(env.VENUE_US_ENABLED, false),     // the US referral/IB path
     // EDGE's Polymarket US referral/IB code (US-side monetization; no builder fee on US).
     usReferralCode: env.US_REFERRAL_CODE ?? '',
-    // Polymarket US public site for deep-links (US users trade in their own account).
-    usSiteUrl: env.US_SITE_URL ?? 'https://polymarket.us',
+    // Consumer market pages live on polymarket.com (geo-routes US users to the
+    // regulated US experience). polymarket.us is only a marketing landing — no /event/ pages.
+    usSiteUrl: env.US_SITE_URL ?? 'https://polymarket.com',
   },
 
   telegram: {
