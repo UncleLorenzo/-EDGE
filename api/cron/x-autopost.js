@@ -12,37 +12,43 @@ const BASE = process.env.SITE_URL || "https://www.thepolyedge.com";
 const MIN_INTERVAL = 18 * 60 * 1000; // ≥18 min between posts — active, not spammy
 const WHALE_MIN = 5000;              // only post bets this size or bigger
 
+async function fetchJSON(url, ms = 7000) {
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), ms);
+  try { const r = await fetch(url, { signal: ac.signal }); return r.ok ? await r.json() : null; }
+  catch { return null; } finally { clearTimeout(t); }
+}
 async function gather() {
   const cands = [];
-  try {
-    const sm = await fetch(`${BASE}/api/whales/smart-money`).then((r) => r.json());
-    for (const t of sm.tape || []) {
-      if ((t.usd || 0) < WHALE_MIN) continue;
-      cands.push({
-        type: "whale", key: `w:${t.tx_hash || t.wallet + t.timestamp}`, score: t.usd,
-        data: { trader: t.name || "a top wallet", rank: t.cred_rank, lifetime_pnl: t.cred_pnl, side: t.side, outcome: t.outcome, usd: t.usd, market: t.market_title },
-        link: `${SITE}/whales`, tweet: composeWhale(t),
-      });
-    }
-  } catch {}
-  try {
-    const lv = await fetch(`${BASE}/api/live?hours=6`).then((r) => r.json());
-    const top = (lv.cards || []).filter((c) => (c.volume_24h || 0) > 0).sort((a, b) => (b.volume_24h || 0) - (a.volume_24h || 0))[0];
-    if (top) cands.push({
-      type: "market", key: `m:${top.id}:${Math.floor(Date.now() / 3.6e6)}`, score: Math.min(top.volume_24h || 0, 4000),
-      data: { market: top.title, yes_cents: Math.round((top.yes_price || 0) * 100), no_cents: Math.round((top.no_price || 0) * 100), category: top.category },
-      link: `${SITE}/live`, tweet: composeMarket(top),
+  // parallel + timeouts so one slow/flaky source never starves the others
+  const [sm, lv, bz] = await Promise.all([
+    fetchJSON(`${BASE}/api/whales/smart-money`),
+    fetchJSON(`${BASE}/api/live?hours=6`),
+    fetchJSON(`${BASE}/api/buzz/markets?limit=8`),
+  ]);
+  // 🐋 whale bets
+  for (const t of (sm?.tape || [])) {
+    if ((t.usd || 0) < WHALE_MIN) continue;
+    cands.push({
+      type: "whale", key: `w:${t.tx_hash || t.wallet + t.timestamp}`, score: t.usd,
+      data: { trader: t.name || "a top wallet", rank: t.cred_rank, lifetime_pnl: t.cred_pnl, side: t.side, outcome: t.outcome, usd: t.usd, market: t.market_title },
+      link: `${SITE}/whales`, tweet: composeWhale(t),
     });
-  } catch {}
-  try {
-    const bz = await fetch(`${BASE}/api/buzz/markets?limit=8`).then((r) => r.json());
-    const top = (bz.markets || []).filter((m) => (m.heat || 0) > 0).sort((a, b) => (b.heat || 0) - (a.heat || 0))[0];
-    if (top) cands.push({
-      type: "buzz", key: `b:${(top.market_url || top.title || "").slice(0, 40)}:${Math.floor(Date.now() / 7.2e6)}`, score: Math.min((top.heat || 0) * 90, 3500),
-      data: { market: top.title, sources_talking: top.thread_count, heat: top.heat },
-      link: `${SITE}/buzz`, tweet: composeBuzz(top),
-    });
-  } catch {}
+  }
+  // 🗣️ trending / news-driven market
+  const bzTop = (bz?.markets || []).filter((m) => (m.heat || 0) > 0).sort((a, b) => (b.heat || 0) - (a.heat || 0))[0];
+  if (bzTop) cands.push({
+    type: "buzz", key: `b:${(bzTop.market_url || bzTop.title || "").slice(0, 40)}:${Math.floor(Date.now() / 7.2e6)}`, score: Math.min((bzTop.heat || 0) * 90, 3500),
+    data: { market: bzTop.title, sources_talking: bzTop.thread_count, heat: bzTop.heat },
+    link: `${SITE}/buzz`, tweet: composeBuzz(bzTop),
+  });
+  // 👀 live market — prefer one with volume, else just the top live card (guaranteed fallback so the agent always has something)
+  const cards = lv?.cards || [];
+  const mkTop = cards.find((c) => (c.volume_24h || 0) > 0) || cards[0];
+  if (mkTop) cands.push({
+    type: "market", key: `m:${mkTop.id}:${Math.floor(Date.now() / 3.6e6)}`, score: Math.max(700, Math.min(mkTop.volume_24h || 0, 4000)),
+    data: { market: mkTop.title, yes_cents: Math.round((mkTop.yes_price || 0) * 100), no_cents: Math.round((mkTop.no_price || 0) * 100), category: mkTop.category },
+    link: `${SITE}/live`, tweet: composeMarket(mkTop),
+  });
   return cands.sort((a, b) => b.score - a.score);
 }
 async function isPosted(key) { if (!kvEnabled) return false; try { return !!(await kvCmd(["GET", `x:p:${key}`])); } catch { return false; } }
