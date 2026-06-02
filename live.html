@@ -74,6 +74,16 @@ main.live { max-width: 1180px; margin: 0 auto; padding: 22px 16px 70px; }
 .seg button.active { color: var(--void); background: var(--lime); }
 .seg.win button.active { background: var(--void-4); color: var(--lime); box-shadow: inset 0 0 0 1px var(--border-bright); }
 
+/* momentum shifts strip */
+.momentum-shifts { display: none; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; padding: 9px 12px; border: 1px solid rgba(255,184,0,.22); border-radius: 12px; background: rgba(255,184,0,.04); }
+.momentum-shifts.show { display: flex; }
+.ms-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); flex: 0 0 auto; }
+.ms-pill { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--white); text-decoration: none; background: var(--void-3); border: 1px solid var(--border); border-radius: 100px; padding: 5px 11px; transition: transform .15s, border-color .15s; white-space: nowrap; }
+.ms-pill:hover { transform: translateY(-1px); border-color: var(--border-bright); }
+.ms-pill b { color: var(--white); } .ms-pill .d { font-weight: 700; }
+.ms-pill.breakout { border-color: rgba(0,255,133,.3); } .ms-pill.breakout .d { color: var(--green); }
+.ms-pill.reversal { border-color: rgba(255,184,0,.35); } .ms-pill.reversal .d { color: var(--amber); }
+
 /* grid */
 .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(282px, 1fr)); gap: 14px; grid-auto-flow: row dense; }
 .live-empty, .live-loading { grid-column: 1 / -1; text-align: center; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 60px 20px; }
@@ -116,9 +126,11 @@ main.live { max-width: 1180px; margin: 0 auto; padding: 22px 16px 70px; }
 .lc-spark { display: flex; align-items: center; gap: 10px; min-height: 30px; }
 .lc-spark svg { width: 100%; height: 30px; flex: 1 1 auto; }
 .lc-spark:empty { display: none; }
-.lc-mv { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; flex: 0 0 auto; }
-.lc-mv.up { color: var(--green); } .lc-mv.down { color: var(--magenta); } .lc-mv.flat { color: var(--muted); font-weight: 400; }
-.lc-mv.hot { color: var(--amber); }
+.lc-mom { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; flex: 0 0 auto; }
+.lc-mom.up { color: var(--green); } .lc-mom.down { color: var(--magenta); } .lc-mom.flat { color: var(--muted); font-weight: 400; }
+.lc-mom.shift { color: var(--amber); }
+.lc-state { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.lc-state.breakout { color: var(--green); } .lc-state.reversal { color: var(--amber); } .lc-state.run { color: var(--lime); }
 
 .lc-odds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .lc-odd { border-radius: 10px; padding: 9px; text-align: center; border: 1px solid var(--border); background: var(--void-2); }
@@ -199,6 +211,8 @@ main.live { max-width: 1180px; margin: 0 auto; padding: 22px 16px 70px; }
       <button data-h="24">24H</button>
     </div>
   </div>
+
+  <div class="momentum-shifts" id="momShifts"></div>
 
   <div class="live-grid" id="liveGrid">
     <div class="live-loading">Loading the live board…</div>
