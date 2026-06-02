@@ -72,6 +72,7 @@ function render() {
       </div>
       <div class="pf-actions">
         <button class="pf-follow" id="pfFollow"></button>
+        <button class="pf-ext" id="pfShare" title="Share to X">↗ Share</button>
         <a class="pf-ext" href="/whales.html?wallet=${wallet}" title="On-chain moves">🦅</a>
         <a class="pf-ext" href="${polyProfile(wallet)}" target="_blank" rel="noopener">Polymarket ↗</a>
       </div>
@@ -88,6 +89,7 @@ function render() {
     </div>
     <div class="pf-body" id="pfBody"></div>`;
   wireFollow(id);
+  $("#pfShare").onclick = () => shareX(name, cred);
   $("#pfCopy").onclick = () => { try { navigator.clipboard.writeText(wallet); toast("Address copied"); } catch {} };
   document.querySelectorAll("#pfTabs button").forEach((b) => (b.onclick = () => { state.tab = b.dataset.t; render(); }));
   renderBody();
@@ -127,6 +129,14 @@ function wireFollow(id) {
     sync();
     toast(now ? "Following — added to your feed" : "Unfollowed");
   };
+}
+
+function shareX(name, cred) {
+  const url = `https://www.thepolyedge.com/u.html?w=${wallet}`;
+  let txt = `👀 ${name} `;
+  if (cred) txt += `is #${cred.rank} ${WL[cred.window] || ""} on Polymarket${cred.pnl ? ` (${pnlStr(cred.pnl)})` : ""} — `;
+  txt += `track their every bet live on @gopolyedge 👇`;
+  window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(url)}`, "_blank", "noopener");
 }
 
 let _tt;

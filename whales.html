@@ -569,13 +569,18 @@ footer a { color: var(--lime); text-decoration: none; }
 .sm-row {
   background: var(--void-2);
   display: grid;
-  grid-template-columns: 52px 42px 1fr auto;
+  grid-template-columns: 52px 42px 1fr auto auto;
   gap: 16px; align-items: center;
   padding: 13px 18px 13px 12px;
   cursor: pointer; text-decoration: none;
   transition: background .15s;
 }
 .sm-row:hover { background: var(--void-3); }
+
+/* inline follow chip (any feed) */
+.fchip { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--void-3); color: var(--lime); font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer; transition: .14s; display: inline-flex; align-items: center; justify-content: center; }
+.fchip:hover { border-color: var(--lime); background: rgba(196,255,0,.1); transform: scale(1.08); }
+.fchip.on { background: rgba(0,255,133,.12); border-color: var(--green); color: var(--green); }
 .sm-rank { font-family: 'Anton', sans-serif; font-size: 22px; color: var(--muted); text-align: center; }
 .sm-row.top1 { background: linear-gradient(90deg, rgba(255,210,74,.09), var(--void-2) 40%); }
 .sm-row.top2 { background: linear-gradient(90deg, rgba(201,210,218,.07), var(--void-2) 40%); }

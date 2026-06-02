@@ -3,6 +3,25 @@
 //   /whales.html?wallet=… → wallet detail
 import { fmtUsd, fmtUsdExact, fmtPct, fmtAgo, short, escapeHtml, escapeAttr } from "/lib/client/format.js";
 import { liveList, liveLoop } from "/lib/client/live.js";
+import { isFollowing, toggleFollow } from "/lib/client/follow.js";
+
+// Inline follow chip — lets you follow a trader straight from any feed without
+// leaving the page. Click is intercepted (preventDefault) so the row link doesn't fire.
+function fChip(wallet, name, img) {
+  const on = isFollowing(wallet);
+  return `<button class="fchip${on ? " on" : ""}" data-follow="${escapeAttr(wallet)}" data-fn="${escapeAttr(name || "")}" data-fi="${escapeAttr(img || "")}" title="${on ? "Following" : "Follow"}">${on ? "✓" : "+"}</button>`;
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".fchip");
+    if (!chip) return;
+    e.preventDefault(); e.stopPropagation();
+    const on = toggleFollow(chip.dataset.follow, { name: chip.dataset.fn, image: chip.dataset.fi });
+    chip.classList.toggle("on", on);
+    chip.textContent = on ? "✓" : "+";
+    chip.title = on ? "Following" : "Follow";
+  }, true);
+}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const main = $("#main");
@@ -353,6 +372,7 @@ function smRow(w) {
     <div class="sm-av">${av}</div>
     <div class="sm-id"><div class="n">${escapeHtml(w.name || short(w.wallet, 8))}</div><div class="w">${short(w.wallet, 8)}</div></div>
     <div class="sm-pnl"><div class="v">${pnlUsd(w.pnl_usd)}</div><div class="l">profit</div></div>
+    ${fChip(w.wallet, w.name, w.image)}
   </a>`;
 }
 
