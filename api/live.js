@@ -15,6 +15,11 @@ const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 const clamp = (p) => Math.max(0, Math.min(1, num(p)));
 function arr(v) { if (Array.isArray(v)) return v; try { const x = JSON.parse(v); return Array.isArray(x) ? x : []; } catch { return []; } }
 function isoUnix(s) { if (!s) return null; const t = Date.parse(s); return Number.isFinite(t) ? Math.floor(t / 1000) : null; }
+// Kalshi multi-game parlays concatenate every leg into one title — skip the junk.
+function isParlay(text, ticker) {
+  if (/kxmve|multigame|crosscategory|multimarket/i.test(ticker || "")) return true;
+  return ((text || "").match(/,\s*(yes|no)\b/gi) || []).length >= 2;
+}
 
 // kind drives the filter tabs (Sports / Crypto / All) + the card face.
 function classify(text) {
@@ -77,6 +82,7 @@ async function fetchKalshi(now, windowSec) {
     if (vol <= 0 && oi <= 0 && c.kind !== "sport" && c.kind !== "crypto") continue;
     const sub = (m.yes_sub_title || "").trim();
     const title = sub && !/^(yes|no)$/i.test(sub) ? `${m.title} — ${sub}` : m.title || "";
+    if (isParlay(`${m.title} ${sub}`, m.event_ticker)) continue; // no concatenated parlay junk-titles
     const series = (m.event_ticker || "").split("-")[0];
     out.push({
       id: `k_${m.ticker}`, platform: "kalshi", title, kind: c.kind, category: c.cat, emoji: c.emoji,

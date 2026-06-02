@@ -102,7 +102,7 @@ main.yup {
 @keyframes cdpulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.04); opacity: .82; } }
 .card.warn .cd-num { color: var(--amber); }
 
-.card-q { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: clamp(18px, 5vw, 23px); line-height: 1.18; text-align: center; margin: 8px 4px auto; position: relative; z-index: 2; }
+.card-q { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: clamp(18px, 5vw, 23px); line-height: 1.22; text-align: center; margin: 8px 4px auto; position: relative; z-index: 2; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 
 .card-odds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; z-index: 2; }
 .odd { border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: transform .1s, background .12s, border-color .12s; }
