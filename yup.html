@@ -124,6 +124,30 @@ main.yup {
 .stamp.yes { left: 22px; color: var(--green); border: 3px solid var(--green); transform: rotate(-14deg); }
 .stamp.no { right: 22px; color: var(--magenta); border: 3px solid var(--magenta); transform: rotate(14deg); }
 
+/* verdict pop — the "YUP!" / "NOPE." stamp that bursts on every call */
+.verdict-pop {
+  position: absolute; top: 50%; left: 50%; z-index: 30; pointer-events: none;
+  font-family: 'Anton', sans-serif; font-size: clamp(54px, 17vw, 116px); line-height: 1;
+  letter-spacing: .02em; text-transform: uppercase;
+  padding: 8px 26px; border-radius: 16px; border: 5px solid currentColor;
+  text-shadow: 0 0 44px currentColor; background: rgba(5,5,7,.35); backdrop-filter: blur(2px);
+  transform: translate(-50%,-50%) scale(.3); opacity: 0; will-change: transform, opacity;
+}
+.verdict-pop.yes { color: var(--green); animation: verdictpop-yes .8s cubic-bezier(.18,1.3,.4,1) forwards; }
+.verdict-pop.no { color: var(--magenta); animation: verdictpop-no .8s cubic-bezier(.18,1.3,.4,1) forwards; }
+@keyframes verdictpop-yes {
+  0% { transform: translate(-50%,-50%) scale(.3) rotate(-16deg); opacity: 0; }
+  28% { transform: translate(-50%,-50%) scale(1.14) rotate(-8deg); opacity: 1; }
+  55% { transform: translate(-50%,-50%) scale(1) rotate(-8deg); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.3) rotate(-6deg); opacity: 0; }
+}
+@keyframes verdictpop-no {
+  0% { transform: translate(-50%,-50%) scale(.3) rotate(16deg); opacity: 0; }
+  28% { transform: translate(-50%,-50%) scale(1.14) rotate(8deg); opacity: 1; }
+  55% { transform: translate(-50%,-50%) scale(1) rotate(8deg); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.3) rotate(6deg); opacity: 0; }
+}
+
 /* depth for stacked cards */
 .card.s1 { transform: scale(.94) translateY(16px); filter: brightness(.8); }
 .card.s2 { transform: scale(.88) translateY(32px); filter: brightness(.62); }

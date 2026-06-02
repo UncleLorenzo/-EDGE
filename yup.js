@@ -269,7 +269,7 @@ function cardEl(c) {
     <div class="card-drain"><div class="drain-fill"></div></div>
     <div class="card-glow"></div>
     <div class="stamp yes">YUP!</div>
-    <div class="stamp no">NO</div>
+    <div class="stamp no">NOPE.</div>
     <div class="card-head">
       <span class="card-cat"><span class="emoji">${c.emoji || "🎲"}</span> <b>${esc(c.category)}</b> · ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</span>
       <span class="card-vol">${c.volume_24h ? fmtUsd(c.volume_24h) + " vol" : "fresh"}</span>
@@ -394,8 +394,20 @@ function attachDrag(el, card) {
   el.addEventListener("pointercancel", end);
 }
 
+// satisfying stamp-pop on every call — fires for swipe, buttons AND pill taps
+function verdictPop(side) {
+  if (side !== "yes" && side !== "no") return;
+  const el = document.createElement("div");
+  el.className = `verdict-pop ${side}`;
+  el.textContent = side === "yes" ? "YUP!" : "NOPE.";
+  deck.appendChild(el);
+  const done = () => el.remove();
+  el.addEventListener("animationend", done);
+  setTimeout(done, 900);
+}
 function commit(side, card, el) {
   if (!card) return;
+  verdictPop(side);
   const dir = side === "no" ? -1 : 1;
   if (el) {
     el.classList.add("gone");
