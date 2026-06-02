@@ -111,13 +111,15 @@ function ranked() {
     .map((c) => ({ c, mom: recentMove(sparkKey(c), c.yes_price) }))
     .sort((a, b) => Math.abs(b.mom) - Math.abs(a.mom) || (b.c.volume_24h || 0) - (a.c.volume_24h || 0));
 }
-function lcCard(c) {
+function lcCard(c, featMom) {
+  const featured = featMom != null;
+  const big = featured && Math.abs(featMom) >= 5;
   const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
-  return `<a class="live-card" href="${escAttr(c.link)}" target="_blank" rel="noopener" data-key="${escAttr(sparkKey(c))}" data-close="${c.close_ts}">
-    <div class="lc-head">
-      <span class="lc-cat"><span class="emoji">${c.emoji || "🎲"}</span> <b>${esc(c.category)}</b> <span class="lc-ven">· ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</span></span>
-      <span class="lc-cd">--:--</span>
-    </div>
+  const cat = featured
+    ? `<span class="lc-cat feat"><span class="emoji">${big ? "🔥" : "🔴"}</span> <b>${big ? "Top mover" : "Most live"}</b> <span class="lc-ven">${c.emoji} ${esc(c.category)} · ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</span></span>`
+    : `<span class="lc-cat"><span class="emoji">${c.emoji || "🎲"}</span> <b>${esc(c.category)}</b> <span class="lc-ven">· ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</span></span>`;
+  return `<a class="live-card${featured ? " featured" : ""}" href="${escAttr(c.link)}" target="_blank" rel="noopener" data-key="${escAttr(sparkKey(c))}" data-close="${c.close_ts}">
+    <div class="lc-head">${cat}<span class="lc-cd">--:--</span></div>
     <div class="lc-q">${esc(c.title)}</div>
     <div class="lc-spark" data-spark="${escAttr(sparkKey(c))}"></div>
     <div class="lc-odds">
@@ -133,7 +135,7 @@ function render() {
     grid.innerHTML = `<div class="live-empty">No live ${state.kind === "all" ? "" : state.kind + " "}markets in this window. Widen to 24H or switch filters.</div>`;
     return;
   }
-  grid.innerHTML = rows.map((r) => lcCard(r.c)).join("");
+  grid.innerHTML = rows.map((r, i) => lcCard(r.c, i === 0 && rows.length >= 6 ? r.mom : null)).join(""); // always lead with the #1 mover
   paintSparks(); paintCountdowns();
 }
 function paintSparks() {
