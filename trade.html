@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$EDGE Trade — Copy the Sharps, One Click</title>
+<meta name="description" content="See what the most profitable Polymarket wallets are betting — then place the same trade on Polymarket US in one click. Your account, your funds. We never hold a cent.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.thepolyedge.com/trade.html">
+<link rel="canonical" href="https://www.thepolyedge.com/trade.html">
+<meta property="og:title" content="$EDGE Trade — Copy the Sharps, One Click">
+<meta property="og:description" content="The sharps just moved. Trade it in one click on Polymarket US. Your account. No custody.">
+<meta property="og:image" content="https://www.thepolyedge.com/og-share-a.png?v=2">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.thepolyedge.com/og-share-a.png?v=2">
+<meta name="theme-color" content="#050507">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23050507'/%3E%3Ctext x='50' y='78' font-family='Arial Black,sans-serif' font-size='90' font-weight='900' text-anchor='middle' fill='%23C4FF00'%3E%24%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/lib/client/elite.css">
+<script defer src="/lib/client/elite.js"></script>
+<script defer src="/lib/client/ticker.js"></script>
+<script defer src="/lib/client/palette.js"></script>
+
+<style>
+:root {
+  --void: #050507; --void-2: #0c0c10; --void-3: #141418; --void-4: #1c1c22;
+  --lime: #C4FF00; --lime-dim: #8aa800; --magenta: #FF006E; --green: #00FF85;
+  --amber: #FFB800; --orange: #FF7A00; --red: #FF3344; --white: #F5F5F0;
+  --muted: #6B6B73; --grid: rgba(196, 255, 0, 0.05);
+  --border: rgba(245, 245, 240, 0.08); --border-bright: rgba(196, 255, 0, 0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--void); color: var(--white); font-family: 'DM Sans', sans-serif;
+  font-variant-numeric: tabular-nums; overflow-x: hidden; min-height: 100vh; position: relative;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 60px 60px; pointer-events: none; z-index: 0;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+main, header, section { position: relative; z-index: 2; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.display { font-family: 'Anton', sans-serif; letter-spacing: -0.01em; text-transform: uppercase; }
+
+/* ── HEADER (canonical shared nav) ─────────────────────────────────── */
+header { border-bottom: 1px solid var(--border-bright); padding: 18px 32px; }
+.logo { display: inline-flex; align-items: baseline; gap: 1px; text-decoration: none; font-family: 'Anton', sans-serif; font-size: 26px; }
+.logo .dollar { color: var(--lime); } .logo .word { color: var(--white); letter-spacing: -0.01em; }
+nav ul { display: flex; gap: 26px; list-style: none; }
+nav a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+nav a:hover { color: var(--white); }
+.live-pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); display: flex; align-items: center; gap: 7px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+.btn { text-decoration: none; font-size: 13px; font-weight: 700; padding: 9px 16px; border-radius: 3px; }
+.btn-app { background: var(--lime); color: var(--void); }
+.btn-ghost { border: 1px solid var(--border-bright); color: var(--white); }
+
+/* ── HERO ──────────────────────────────────────────────────────────── */
+.hero { max-width: 1180px; margin: 0 auto; padding: 64px 32px 36px; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--lime); text-transform: uppercase; }
+.hero h1 { font-family: 'Anton', sans-serif; text-transform: uppercase; letter-spacing: -0.02em; font-size: clamp(40px, 7vw, 84px); line-height: 0.94; margin: 18px 0 0; }
+.hero h1 .accent { color: var(--lime); }
+.hero p.lede { font-size: clamp(15px, 2vw, 19px); color: #cfcfcf; max-width: 640px; margin: 20px 0 0; line-height: 1.5; }
+
+/* trust strip */
+.trust { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.trust span { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; }
+.trust span b { color: var(--green); font-weight: 700; }
+
+/* ── FEED ──────────────────────────────────────────────────────────── */
+.feed-wrap { max-width: 1180px; margin: 0 auto; padding: 8px 32px 80px; }
+.feed-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 24px 0 14px; border-top: 1px solid var(--border); padding-top: 22px; }
+.feed-head .eyebrow { display: flex; align-items: center; gap: 8px; }
+.feed-head .count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+
+.card { background: var(--void-2); border: 1px solid var(--border); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 13px; transition: border-color .15s, transform .15s; }
+.card:hover { border-color: var(--border-bright); transform: translateY(-1px); }
+.card .who { display: flex; align-items: center; gap: 9px; }
+.card .rank { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--void); background: var(--lime); padding: 2px 7px; border-radius: 3px; }
+.card .name { font-weight: 700; font-size: 15px; }
+.card .pnl { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green); margin-left: auto; }
+.card .market { font-size: 14.5px; line-height: 1.35; color: var(--white); min-height: 40px; }
+.card .bet { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+.tag.buy { background: rgba(0,255,133,0.12); color: var(--green); border: 1px solid rgba(0,255,133,0.3); }
+.tag.sell { background: rgba(255,51,68,0.12); color: var(--red); border: 1px solid rgba(255,51,68,0.3); }
+.card .meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+.card .meta b { color: var(--white); font-weight: 700; }
+.cta { margin-top: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; background: var(--lime); color: var(--void); font-family: 'Anton', sans-serif; text-transform: uppercase; letter-spacing: 0.01em; font-size: 16px; padding: 12px; border-radius: 4px; transition: filter .15s, transform .1s; }
+.cta:hover { filter: brightness(1.08); }
+.cta:active { transform: scale(0.985); }
+.card .foot { display: flex; align-items: center; justify-content: space-between; }
+.card .ago { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+
+.note { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 22px; line-height: 1.6; }
+.note a { color: var(--lime); }
+
+/* states */
+.state { padding: 60px 20px; text-align: center; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; }
+.skeleton { background: var(--void-2); border: 1px solid var(--border); border-radius: 6px; height: 230px; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.85; } }
+
+@media (max-width: 768px) {
+  header { padding: 16px 18px; }
+  nav ul { display: none; }
+  .hero { padding: 44px 18px 28px; }
+  .feed-wrap { padding: 8px 18px 64px; }
+  .cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="elite-nav site-nav">
+  <a class="logo" href="/"><span class="dollar">$</span><span class="word">EDGE</span></a>
+  <nav>
+    <ul>
+      <li><a href="/edge.html">Edge</a></li>
+      <li><a href="/arb.html">ARB</a></li>
+      <li><a href="/buzz.html">Buzz</a></li>
+      <li><a href="/whales.html">Whales</a></li>
+      <li><a href="/trade.html" aria-current="page">Trade</a></li>
+      <li><a href="/token.html">Token</a></li>
+    </ul>
+  </nav>
+  <div class="nav-right">
+    <div class="live-pill"><span class="live-dot"></span> LIVE</div>
+    <a class="btn btn-app" href="/dashboard.html">Dashboard</a>
+    <a class="btn btn-ghost" href="/token.html">Buy $EDGE</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">One-Click · Polymarket US</div>
+    <h1>The sharps just moved.<br><span class="accent">Trade it.</span></h1>
+    <p class="lede">See exactly what the most profitable wallets on Polymarket are betting — live — then place the same trade on Polymarket US in one click. Your account. Your funds. We never hold a cent.</p>
+    <div class="trust">
+      <span><b>Non-custodial</b> · your own account</span>
+      <span>EDGE never holds your funds</span>
+      <span>No EDGE signup</span>
+      <span>Powered by the $EDGE sharp signal</span>
+    </div>
+  </section>
+
+  <section class="feed-wrap">
+    <div class="feed-head">
+      <div class="eyebrow"><span class="live-dot"></span> Live Sharp Signal</div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="cards" id="cards" aria-live="polite"></div>
+    <p class="note" id="note">
+      One-click sends you to <b>Polymarket US</b> to place the trade in your own regulated account — EDGE is the signal, not the broker.
+      Not financial advice; you can lose money. <a href="/whales.html">See the full Smart Money tape →</a>
+    </p>
+  </section>
+</main>
+
+<script type="module" src="/trade.js"></script>
+</body>
+</html>
