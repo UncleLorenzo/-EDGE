@@ -56,8 +56,8 @@ export default async function handler(req, res) {
   const params = new URL(req.url, "http://localhost").searchParams;
   const force = params.get("force") === "1";
   if (params.get("debug") === "1") {
-    const g = async (u) => { try { const j = await fetch(u).then((r) => r.json()); return { ok: true, keys: Object.keys(j || {}), n: (j?.cards || j?.tape || j?.markets || []).length }; } catch (e) { return { err: String(e?.message || e) }; } };
-    res.status(200).json({ debug: true, BASE, VERCEL_URL: process.env.VERCEL_URL || null, live: await g(`${BASE}/api/live?hours=6`), sm: await g(`${BASE}/api/whales/smart-money`), buzz: await g(`${BASE}/api/buzz/markets?limit=8`) });
+    const cands = await gather();
+    res.status(200).json({ debug: true, BASE, candidates: cands.length, types: cands.map((c) => c.type), top_tweet: cands[0]?.tweet || null });
     return;
   }
   const cands = await gather();
