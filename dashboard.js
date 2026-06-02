@@ -3,6 +3,8 @@
 import { fmtUsd, fmtAgo, short, escapeHtml, escapeAttr } from "/lib/client/format.js";
 import { liveList, liveLoop } from "/lib/client/live.js";
 import { createPolyStream } from "/lib/client/polyws.js";
+import { analyzeMomentum, sparkSvg } from "/lib/client/momentum.js";
+import { convictionScore } from "/lib/client/conviction.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -359,6 +361,7 @@ async function loadSmartMoney() {
     renderSmWallets((d.windows?.all || []).slice(0, 10));
     processSmAlerts(d.tape || []);
     renderSmTape();
+    updateConviction(d.tape || []); // flagship signal rides the same fetch
     const meta = $("#smdTapeMeta");
     if (meta) meta.innerHTML = `<span class="refresh-dot"></span>${(d.tape || []).length} live · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
   } catch (err) {
@@ -445,6 +448,87 @@ function eeChip(e) {
   </a>`;
 }
 
+// ── CONVICTION strip — smart money × momentum (rides the smart-money fetch) ──
+const convSpark = {}; let _convAt = 0;
+async function updateConviction(tape) {
+  const now = Date.now();
+  if (!(now - _convAt < 9000 && Object.keys(convSpark).length)) {
+    _convAt = now;
+    const assets = [...new Set(tape.map((t) => t.asset).filter(Boolean))].slice(0, 16);
+    if (assets.length) { try { const d = await fetch("/api/spark?pm=" + encodeURIComponent(assets.join(","))).then((r) => r.json()); Object.assign(convSpark, d.pm || {}); } catch {} }
+  }
+  renderConvStrip(tape);
+}
+function renderConvStrip(tape) {
+  const track = $("#convTrack"); if (!track) return;
+  const best = new Map();
+  for (const t of tape) {
+    const c = convictionScore(t, convSpark[t.asset] && convSpark[t.asset].series);
+    if (!c) continue;
+    const k = t.asset + "|" + t.wallet;
+    if (!best.has(k) || c.score > best.get(k).c.score) best.set(k, { t, c });
+  }
+  const sigs = [...best.values()].sort((a, b) => b.c.score - a.c.score).slice(0, 8);
+  const meta = $("#convStripMeta");
+  if (!sigs.length) {
+    track.innerHTML = `<div class="conv-scan-chip">🎯 Scanning for conviction — waiting on a tracked sharp to bet a market that's moving their way…</div>`;
+    if (meta) meta.textContent = "Open terminal →";
+    return;
+  }
+  if (meta) meta.textContent = `${sigs.length} live · terminal →`;
+  track.innerHTML = sigs.map(convChip).join("");
+}
+function convChip({ t, c }) {
+  const m = c.m, up = m.dir > 0, sp = convSpark[t.asset];
+  const spark = sp ? sparkSvg(sp.series, m.delta, 110, 24) : "";
+  return `<a class="conv-chip ${c.tier}" href="/conviction.html">
+    <div class="cv-head"><div class="cv-who"><div class="n">${escapeHtml(t.name || short(t.wallet, 6))}</div><div class="c">#${t.cred_rank} · ${smPnl(t.cred_pnl)}</div></div><span class="cv-score">${c.score}</span></div>
+    <div class="cv-mkt">${escapeHtml((t.market_title || "").slice(0, 50))}</div>
+    <div class="cv-spark">${spark}<span class="cv-mom ${up ? "up" : "down"}">${m.emoji} ${m.delta > 0 ? "+" : ""}${m.delta}¢</span></div>
+    <div class="cv-bet"><b class="${t.side === "BUY" ? "buy" : "sell"}">${t.side} ${escapeHtml((t.outcome || "").slice(0, 16))}</b> · ${fmtUsd(t.usd)}</div>
+  </a>`;
+}
+
+// ── LIVE Movers strip — biggest momentum across venues ──
+const liveSpark = {};
+async function loadLiveMovers() {
+  try {
+    const d = await fetch("/api/live?hours=6").then((r) => r.json());
+    const cards = (d.cards || []).slice(0, 30);
+    const ids = cards.filter((c) => c.platform === "kalshi").map((c) => c.id).slice(0, 16);
+    const pm = cards.filter((c) => c.platform === "polymarket" && c.yes_token).map((c) => c.yes_token).slice(0, 6);
+    const qs = [ids.length ? `ids=${encodeURIComponent(ids.join(","))}` : "", pm.length ? `pm=${encodeURIComponent(pm.join(","))}` : ""].filter(Boolean).join("&");
+    if (qs) { try { const s = await fetch("/api/spark?" + qs).then((r) => r.json()); Object.assign(liveSpark, s.spark || {}, s.pm || {}); } catch {} }
+    renderLiveStrip(cards, d.server_now);
+  } catch {}
+}
+function renderLiveStrip(cards, serverNow) {
+  const track = $("#liveTrack"); if (!track || !cards.length) return;
+  const offset = (serverNow || Math.floor(Date.now() / 1000)) - Math.floor(Date.now() / 1000);
+  const scored = cards.map((c) => {
+    const key = c.platform === "kalshi" ? c.id : c.yes_token;
+    const sp = liveSpark[key];
+    return { c, sp, m: analyzeMomentum(sp ? sp.series : []) };
+  }).sort((a, b) => b.m.score - a.m.score).slice(0, 12);
+  const meta = $("#liveStripMeta");
+  if (meta) meta.textContent = `${cards.length} live · board →`;
+  track.innerHTML = scored.map((x) => liveChip(x, offset)).join("");
+}
+function liveChip({ c, sp, m }, offset) {
+  const left = c.close_ts - (Math.floor(Date.now() / 1000) + offset);
+  const cd = left <= 0 ? "closing" : left >= 3600 ? `${Math.floor(left / 3600)}h ${Math.floor((left % 3600) / 60)}m` : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  const spark = (sp && sp.series.length >= 2) ? sparkSvg(sp.series, m.delta, 120, 26) : "";
+  const hot = m.state === "breakout" || m.state === "reversal";
+  const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
+  const dirCls = m.dir > 0 ? "up" : m.dir < 0 ? "down" : "flat";
+  return `<a class="live-chip${hot ? " hot" : ""}" href="${escapeAttr(c.link)}" target="_blank" rel="noopener">
+    <div class="lv-head"><span class="lv-cat">${c.emoji || "🎲"} ${escapeHtml(c.category)}</span><span class="lv-cd">${cd}</span></div>
+    <div class="lv-q">${escapeHtml((c.title || "").slice(0, 56))}</div>
+    <div class="lv-spark">${spark}<span class="lv-mom ${dirCls}">${m.emoji} ${m.delta > 0 ? "+" : ""}${m.delta}¢</span></div>
+    <div class="lv-odds"><span class="no">${no}¢ No</span><span class="yes">${yes}¢ Yes</span></div>
+  </a>`;
+}
+
 // ── pop-up toasts (in-page; new sharp bet ≥ $1K) ──────────────────────
 function ensureToastWrap() {
   let w = document.getElementById("toastWrap");
@@ -476,6 +560,7 @@ function fireToast(t) {
 // ── boot + schedule ───────────────────────────────────────────────────
 // Live loops — poll on cadence, pause while the tab is hidden, refresh on return.
 liveLoop(loadSmartMoney, 4_000);
+liveLoop(loadLiveMovers, 8_000);
 liveLoop(loadEagleStrip, 30_000);
 liveLoop(loadMarkets, INTERVALS.markets);
 liveLoop(loadWhales, INTERVALS.whales);

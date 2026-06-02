@@ -3,7 +3,8 @@
 // (Polymarket on-chain trades by proven-profitable wallets), overlay the shared
 // Momentum Engine on each market's price action, and score where they agree.
 import { fmtUsd, fmtAgo, short, escapeHtml, escapeAttr } from "/lib/client/format.js";
-import { analyzeMomentum, sparkSvg } from "/lib/client/momentum.js";
+import { sparkSvg } from "/lib/client/momentum.js";
+import { convictionScore } from "/lib/client/conviction.js";
 
 const $ = (s) => document.querySelector(s);
 const feed = $("#convFeed");
@@ -43,20 +44,8 @@ async function loadSpark() {
 // ── conviction scoring ──
 function convictionOf(t) {
   const sp = state.spark[t.asset];
-  if (!sp || sp.series.length < 2) return null;
-  const m = analyzeMomentum(sp.series);
-  const buy = t.side === "BUY";
-  const aligned = (buy && m.dir > 0) || (!buy && m.dir < 0); // market moving the way they bet
-  if (!aligned) return null;
-  if (m.state === "quiet" || m.state === "steady") return null; // needs real momentum
-  const ageMin = (Date.now() / 1000 - (t.timestamp || 0)) / 60;
-  if (ageMin > 120) return null;
-  const rankF = t.cred_rank ? ((51 - Math.min(50, t.cred_rank)) / 50) * 35 : 12;
-  const sizeF = Math.min(25, Math.log10((t.usd || 0) + 10) * 6);
-  const momF = Math.min(36, m.score * 1.4 + (m.state === "breakout" ? 8 : m.state === "reversal" ? 5 : 0));
-  const freshF = Math.max(0, 10 * (1 - ageMin / 120));
-  const score = Math.round(Math.min(100, rankF + sizeF + momF + freshF));
-  return { m, sp, score, ageMin };
+  const c = convictionScore(t, sp && sp.series);
+  return c ? { ...c, sp } : null;
 }
 function signals() {
   const best = new Map(); // strongest per market+wallet

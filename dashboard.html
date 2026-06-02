@@ -40,6 +40,7 @@
   --magenta: #FF006E;
   --green: #00FF85;
   --amber: #FFB800;
+  --gold: #FFD24A;
   --orange: #FF7A00;
   --red: #FF3344;
   --white: #F5F5F0;
@@ -264,6 +265,53 @@ main {
 /* skeletons */
 .sm-skel { height: 48px; border-bottom: 1px solid var(--border); background: linear-gradient(90deg, var(--void-2), var(--void-3), var(--void-2)); background-size: 200% 100%; animation: smShim 1.4s linear infinite; }
 .ee-chip-skel { flex: 0 0 auto; width: 210px; height: 64px; border-radius: 3px; background: linear-gradient(90deg, var(--void-2), var(--void-3), var(--void-2)); background-size: 200% 100%; animation: smShim 1.4s linear infinite; }
+
+/* ── CONVICTION strip — smart money × momentum (flagship) ── */
+.conv-strip { padding: 16px 12px 4px; position: relative; z-index: 30; }
+.cstrip-head, .lstrip-head { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 10px; gap: 12px; }
+.cstrip-head .t, .lstrip-head .t { font-family: 'Anton', sans-serif; font-size: 17px; text-transform: uppercase; letter-spacing: 0.04em; }
+.cstrip-head .t .accent-g { color: var(--gold); } .lstrip-head .t .accent { color: var(--lime); }
+.conv-track, .live-track { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; scrollbar-color: var(--void-4) transparent; }
+.conv-track::-webkit-scrollbar, .live-track::-webkit-scrollbar { height: 6px; }
+.conv-track::-webkit-scrollbar-thumb, .live-track::-webkit-scrollbar-thumb { background: var(--void-4); border-radius: 3px; }
+.conv-chip { flex: 0 0 auto; width: 250px; background: linear-gradient(165deg, var(--void-3), var(--void-2)); border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; text-decoration: none; position: relative; overflow: hidden; transition: transform .15s, border-color .15s, box-shadow .15s; }
+.conv-chip::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.conv-chip.elite::before { background: linear-gradient(var(--gold), var(--amber)); }
+.conv-chip.strong::before { background: var(--green); } .conv-chip.live::before { background: var(--lime); }
+.conv-chip.elite { border-color: rgba(255,210,74,.28); }
+.conv-chip:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+.conv-chip.elite:hover { box-shadow: 0 0 26px rgba(255,210,74,.12); }
+.cv-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.cv-who { min-width: 0; } .cv-who .n { color: var(--white); font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-who .c { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--green); margin-top: 1px; }
+.cv-score { font-family: 'Anton', sans-serif; font-size: 30px; line-height: .8; flex: 0 0 auto; }
+.conv-chip.elite .cv-score { color: var(--gold); text-shadow: 0 0 16px rgba(255,210,74,.4); }
+.conv-chip.strong .cv-score { color: var(--green); } .conv-chip.live .cv-score { color: var(--lime); }
+.cv-mkt { font-size: 12px; font-weight: 600; color: var(--white); margin-top: 8px; line-height: 1.25; height: 30px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cv-spark { display: flex; align-items: center; gap: 8px; margin-top: 6px; height: 24px; }
+.cv-spark svg { flex: 1 1 auto; height: 24px; width: 100%; }
+.cv-mom { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.cv-mom.up { color: var(--green); } .cv-mom.down { color: var(--magenta); }
+.cv-bet { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); margin-top: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv-bet b.buy { color: var(--green); } .cv-bet b.sell { color: var(--magenta); }
+.conv-scan-chip { flex: 1 1 auto; display: flex; align-items: center; gap: 11px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); padding: 15px 18px; border: 1px dashed rgba(255,210,74,.2); border-radius: 8px; background: rgba(255,210,74,.025); }
+
+/* ── LIVE Movers strip — biggest momentum ── */
+.live-strip { padding: 4px 12px 14px; position: relative; z-index: 30; }
+.live-chip { flex: 0 0 auto; width: 212px; background: var(--void-2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; text-decoration: none; transition: transform .15s, border-color .15s; }
+.live-chip:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+.live-chip.hot { border-color: var(--amber); box-shadow: 0 0 18px rgba(255,184,0,.12); }
+.lv-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.lv-cat { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-cd { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--lime); white-space: nowrap; flex: 0 0 auto; }
+.lv-q { font-size: 12px; font-weight: 600; color: var(--white); margin-top: 6px; line-height: 1.25; height: 30px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lv-spark { display: flex; align-items: center; gap: 7px; margin-top: 6px; height: 26px; }
+.lv-spark svg { flex: 1 1 auto; height: 26px; width: 100%; }
+.lv-mom { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.lv-mom.up { color: var(--green); } .lv-mom.down { color: var(--magenta); } .lv-mom.flat { color: var(--muted); }
+.lv-odds { display: flex; justify-content: space-between; margin-top: 7px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.lv-odds .no { color: var(--magenta); } .lv-odds .yes { color: var(--green); }
+@media (max-width: 640px) { .conv-chip { width: 222px; } .live-chip { width: 186px; } }
 @keyframes smShim { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* pop-up toasts */
@@ -531,6 +579,15 @@ main .panel:nth-child(4) .panel-head::before { background: var(--amber);   box-s
   </div>
 </header>
 
+<!-- ══ CONVICTION — smart money × momentum (the flagship signal) ════════ -->
+<section class="conv-strip" id="convStrip">
+  <div class="cstrip-head">
+    <div class="t">✦ Highest <span class="accent-g">Conviction</span> · smart money × momentum</div>
+    <a class="hof-link" href="/conviction.html" id="convStripMeta">Open terminal →</a>
+  </div>
+  <div class="conv-track" id="convTrack"><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div></div>
+</section>
+
 <!-- ══ SMART MONEY DECK — leads the dashboard ══════════════════════════ -->
 <section class="sm-deck">
   <div class="sm-deck-title">
@@ -569,6 +626,15 @@ main .panel:nth-child(4) .panel-head::before { background: var(--amber);   box-s
     </div>
     <div class="ee-track" id="smdEagle"><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div></div>
   </div>
+</section>
+
+<!-- ══ LIVE — biggest momentum movers ══════════════════════════════════ -->
+<section class="live-strip" id="liveStrip">
+  <div class="lstrip-head">
+    <div class="t">⚡ Live · <span class="accent">Biggest Movers</span></div>
+    <a class="hof-link" href="/live.html" id="liveStripMeta">Open board →</a>
+  </div>
+  <div class="live-track" id="liveTrack"><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div><div class="ee-chip-skel"></div></div>
 </section>
 
 <div class="stat-strip" id="statStrip">
