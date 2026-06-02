@@ -56,10 +56,12 @@ export default async function handler(req, res) {
   const params = new URL(req.url, "http://localhost").searchParams;
   const force = params.get("force") === "1";
   if (params.get("debug") === "1") {
-    const g = async (u) => { try { const j = await fetch(u).then((r) => r.json()); return (j?.cards || j?.tape || j?.markets || []).length; } catch (e) { return "ERR:" + String(e?.message || e); } };
-    const fetch_counts = { live: await g(`${BASE}/api/live?hours=6`), sm_tape: await g(`${BASE}/api/whales/smart-money`), buzz: await g(`${BASE}/api/buzz/markets?limit=8`) };
-    const cands = await gather();
-    res.status(200).json({ debug: true, BASE, fetch_counts, gather_candidates: cands.length, types: cands.map((c) => c.type), top_tweet: cands[0]?.tweet || null });
+    const out = { debug: true, BASE };
+    try { out.composeMarket = composeMarket({ title: "Test market", yes_price: 0.5, no_price: 0.5, id: "x", category: "Crypto" }); } catch (e) { out.composeMarket_err = String(e?.message || e); }
+    try { out.composeBuzz = composeBuzz({ title: "Test", thread_count: 5, heat: 20, market_url: "x" }); } catch (e) { out.composeBuzz_err = String(e?.message || e); }
+    try { const lv = await fetch(`${BASE}/api/live?hours=6`).then((r) => r.json()); out.live_n = (lv.cards || []).length; out.live0 = lv.cards?.[0] ? { id: lv.cards[0].id, title: (lv.cards[0].title || "").slice(0, 18) } : null; } catch (e) { out.live_err = String(e?.message || e); }
+    const cands = await gather(); out.gather = cands.length; out.types = cands.map((c) => c.type);
+    res.status(200).json(out);
     return;
   }
   const cands = await gather();
