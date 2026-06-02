@@ -9,6 +9,7 @@ import { kvEnabled, kvCmd } from "../../lib/store/kv.js";
 // exact tweet it would post. Add X_API_KEY/SECRET + X_ACCESS_TOKEN/SECRET to go
 // live (free dev app at developer.x.com).
 const BASE = process.env.SITE_URL || "https://www.thepolyedge.com";
+const SITE = BASE;                   // public links in tweets (was referenced but undefined → silent ReferenceError)
 const MIN_INTERVAL = 18 * 60 * 1000; // ≥18 min between posts — active, not spammy
 const WHALE_MIN = 5000;              // only post bets this size or bigger
 
@@ -55,15 +56,6 @@ async function markPosted(key) { if (!kvEnabled) return; try { await kvCmd(["SET
 export default async function handler(req, res) {
   const params = new URL(req.url, "http://localhost").searchParams;
   const force = params.get("force") === "1";
-  if (params.get("debug") === "1") {
-    const out = { debug: true, BASE };
-    try { out.composeMarket = composeMarket({ title: "Test market", yes_price: 0.5, no_price: 0.5, id: "x", category: "Crypto" }); } catch (e) { out.composeMarket_err = String(e?.message || e); }
-    try { out.composeBuzz = composeBuzz({ title: "Test", thread_count: 5, heat: 20, market_url: "x" }); } catch (e) { out.composeBuzz_err = String(e?.message || e); }
-    try { const lv = await fetch(`${BASE}/api/live?hours=6`).then((r) => r.json()); out.live_n = (lv.cards || []).length; out.live0 = lv.cards?.[0] ? { id: lv.cards[0].id, title: (lv.cards[0].title || "").slice(0, 18) } : null; } catch (e) { out.live_err = String(e?.message || e); }
-    const cands = await gather(); out.gather = cands.length; out.types = cands.map((c) => c.type);
-    res.status(200).json(out);
-    return;
-  }
   const cands = await gather();
   if (!cands.length) { res.status(200).json({ ok: true, posted: false, reason: "no candidates right now", x_connected: xEnabled() }); return; }
 
