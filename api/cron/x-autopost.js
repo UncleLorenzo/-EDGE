@@ -1,5 +1,6 @@
 import { xEnabled, postTweet } from "../../lib/x/client.js";
-import { composeWhale, composeMarket } from "../../lib/x/compose.js";
+import { composeWhale, composeMarket, composeBuzz } from "../../lib/x/compose.js";
+import { composeWithAI, aiEnabled } from "../../lib/x/agent.js";
 import { kvEnabled, kvCmd } from "../../lib/store/kv.js";
 
 // EDGE → X auto-poster. On a cron, it surfaces the single most noteworthy live
@@ -17,13 +18,30 @@ async function gather() {
     const sm = await fetch(`${BASE}/api/whales/smart-money`).then((r) => r.json());
     for (const t of sm.tape || []) {
       if ((t.usd || 0) < WHALE_MIN) continue;
-      cands.push({ type: "whale", key: `w:${t.tx_hash || t.wallet + t.timestamp}`, score: t.usd, tweet: composeWhale(t) });
+      cands.push({
+        type: "whale", key: `w:${t.tx_hash || t.wallet + t.timestamp}`, score: t.usd,
+        data: { trader: t.name || "a top wallet", rank: t.cred_rank, lifetime_pnl: t.cred_pnl, side: t.side, outcome: t.outcome, usd: t.usd, market: t.market_title },
+        link: `${SITE}/whales`, tweet: composeWhale(t),
+      });
     }
   } catch {}
   try {
     const lv = await fetch(`${BASE}/api/live?hours=6`).then((r) => r.json());
     const top = (lv.cards || []).filter((c) => (c.volume_24h || 0) > 0).sort((a, b) => (b.volume_24h || 0) - (a.volume_24h || 0))[0];
-    if (top) cands.push({ type: "market", key: `m:${top.id}:${Math.floor(Date.now() / 3.6e6)}`, score: Math.min(top.volume_24h || 0, 4000), tweet: composeMarket(top) });
+    if (top) cands.push({
+      type: "market", key: `m:${top.id}:${Math.floor(Date.now() / 3.6e6)}`, score: Math.min(top.volume_24h || 0, 4000),
+      data: { market: top.title, yes_cents: Math.round((top.yes_price || 0) * 100), no_cents: Math.round((top.no_price || 0) * 100), category: top.category },
+      link: `${SITE}/live`, tweet: composeMarket(top),
+    });
+  } catch {}
+  try {
+    const bz = await fetch(`${BASE}/api/buzz/markets?limit=8`).then((r) => r.json());
+    const top = (bz.markets || []).filter((m) => (m.heat || 0) > 0).sort((a, b) => (b.heat || 0) - (a.heat || 0))[0];
+    if (top) cands.push({
+      type: "buzz", key: `b:${(top.market_url || top.title || "").slice(0, 40)}:${Math.floor(Date.now() / 7.2e6)}`, score: Math.min((top.heat || 0) * 90, 3500),
+      data: { market: top.title, sources_talking: top.thread_count, heat: top.heat },
+      link: `${SITE}/buzz`, tweet: composeBuzz(top),
+    });
   } catch {}
   return cands.sort((a, b) => b.score - a.score);
 }
@@ -48,7 +66,10 @@ export default async function handler(req, res) {
   for (const c of cands) { if (!(await isPosted(c.key))) { picked = c; break; } }
   if (!picked) { res.status(200).json({ ok: true, posted: false, reason: "nothing new to post", x_connected: xEnabled() }); return; }
 
-  const result = await postTweet(picked.tweet);
+  // AI brain writes it (varied + natural) when ANTHROPIC_API_KEY is set; else template.
+  const aiText = await composeWithAI(picked);
+  const tweet = aiText || picked.tweet;
+  const result = await postTweet(tweet);
   if (result.ok) { await markPosted(picked.key); if (kvEnabled) { try { await kvCmd(["SET", "x:last", String(Date.now())]); } catch {} } }
 
   res.status(200).json({
@@ -56,9 +77,11 @@ export default async function handler(req, res) {
     posted: !!result.ok,
     dry_run: !!result.dryRun,
     x_connected: xEnabled(),
+    ai_written: !!aiText,
+    ai_enabled: aiEnabled(),
     type: picked.type,
-    tweet: picked.tweet,
-    chars: picked.tweet.length,
+    tweet,
+    chars: tweet.length,
     tweet_id: result.id || null,
     error: result.error || null,
   });
