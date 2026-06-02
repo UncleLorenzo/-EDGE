@@ -7,6 +7,13 @@ This locks the **Phase A (token OFF)** fee model. It supersedes the illustrative
 numbers in [`04-FEES-AND-TOKEN.md`](04-FEES-AND-TOKEN.md), which describes the full
 Phase-B (token ON) flywheel we switch on later.
 
+> ⚠️ **VENUE CAVEAT (added June 2026 — see [`07-VENUE-AND-COMPLIANCE.md`](07-VENUE-AND-COMPLIANCE.md)):**
+> The 80 bps builder-code mechanism below applies to **Polymarket International only**
+> (non-US users). **Polymarket US has NO builder program** — US monetization is a
+> **Referral / Introducing-Broker revenue-share**, and US users trade in their own
+> KYC'd accounts (EDGE never custodies or signs). Read this doc as "the fee model for
+> the International managed product." The US path's economics are TBD via IB partnership.
+
 ---
 
 ## TL;DR decision

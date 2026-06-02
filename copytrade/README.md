@@ -91,6 +91,7 @@ long-running watchers, a signing keeper, or a Telegram bot. See
 | [04-FEES-AND-TOKEN.md](04-FEES-AND-TOKEN.md) | Fee models, the $EDGE buy+burn flywheel, tier ladder, revenue math |
 | [05-INFRA-SECURITY-ROADMAP.md](05-INFRA-SECURITY-ROADMAP.md) | Backend service, DB, key custody, security, phased roadmap, effort, risks, **the decisions** |
 | [06-FEE-MODEL-DECISION.md](06-FEE-MODEL-DECISION.md) | **Locked fee model** (80 bps via builder codes, token-decoupled) + the competitive fee audit behind it |
+| [07-VENUE-AND-COMPLIANCE.md](07-VENUE-AND-COMPLIANCE.md) | **Venue decision** — segment US (Polymarket US, light/referral) vs non-US (International, managed copy bot); builder codes are International-only; the FCM/IB counsel landmine |
 | [`../backend/`](../backend/) | **Phase 0 scaffold** — the always-on service: exec engine, custody abstraction, copy keeper, Telegram bot, token-agnostic fee ledger |
 
 ---
