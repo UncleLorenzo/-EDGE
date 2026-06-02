@@ -106,7 +106,7 @@ export default async function handler(req, res) {
     const [k, p] = await Promise.all([fetchKalshi(now, windowSec), fetchPoly(now, windowSec)]);
     const cards = [...k, ...p].sort((a, b) => a.close_ts - b.close_ts).slice(0, 80);
 
-    res.setHeader("Cache-Control", "public, s-maxage=6, stale-while-revalidate=20");
+    res.setHeader("Cache-Control", "public, s-maxage=3, stale-while-revalidate=20");
     res.status(200).json({
       cards,
       server_now: now,

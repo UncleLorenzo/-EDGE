@@ -21,6 +21,8 @@ const state = {
   topId: "",
   listSig: "",
   jumpId: null,       // when set, this card jumps to the front of the deck
+  spark: {},          // id -> {series,last,first,delta} live odds history (candlesticks)
+  tick: {},           // id -> [yes_price,...] live-polled fallback series (fresh markets)
   best: Number(localStorage.getItem("yup_best") || 0) || 0,
 };
 state.slip.forEach((s) => { if (s.id) state.called.set(s.id, s.side); });
@@ -53,14 +55,35 @@ async function load() {
   }
 }
 function mergeCards(fresh) {
-  const have = new Set(state.all.map((c) => c.id));
+  const byId = new Map(state.all.map((c) => [c.id, c]));
   for (const c of fresh) {
-    if (have.has(c.id) || c.close_ts - nowTs() <= 1) continue;
-    state.all.push(c);
+    if (c.close_ts - nowTs() <= 1) continue;
+    const ex = byId.get(c.id);
+    if (ex) { ex.yes_price = c.yes_price; ex.no_price = c.no_price; ex.volume_24h = c.volume_24h; } // live re-price
+    else { state.all.push(c); byId.set(c.id, c); }
   }
   state.all = state.all.filter((c) => c.close_ts - nowTs() > 1);
   state.all.sort((a, b) => a.close_ts - b.close_ts);
+  appendTicks();
   renderView();
+}
+// build a live odds series from polling — covers fresh markets with no candle history yet
+function appendTicks() {
+  for (const c of state.all) {
+    const arr = state.tick[c.id] || (state.tick[c.id] = []);
+    if (Number.isFinite(c.yes_price)) arr.push(c.yes_price);
+    if (arr.length > 40) arr.splice(0, arr.length - 40);
+  }
+}
+// reflect live re-prices on the visible card's pills without a full re-render
+function paintLiveOdds() {
+  const el = deck.querySelector(".card:not(.gone):last-child");
+  if (!el) return;
+  const c = state.all.find((x) => x.id === el.dataset.id);
+  if (!c) return;
+  const no = el.querySelector(".odd.no .p"), yes = el.querySelector(".odd.yes .p");
+  if (no) no.textContent = Math.round((c.no_price || 0) * 100) + "¢";
+  if (yes) yes.textContent = Math.round((c.yes_price || 0) * 100) + "¢";
 }
 
 // ── view dispatch ─────────────────────────────────────────────────────
@@ -74,6 +97,7 @@ function setView(v) {
 function renderView() {
   if (state.view === "list") renderList();
   else { maybeRenderSwipe(); renderUpNext(); }
+  paintSparks(); scheduleSpark();
   const el = $("#yupCountN"); if (el) el.textContent = deckCards().length;
 }
 
@@ -90,10 +114,82 @@ function renderUpNext() {
 function unChip(c) {
   const yes = Math.round((c.yes_price || 0) * 100), no = Math.round((c.no_price || 0) * 100);
   return `<div class="un-chip" data-id="${escAttr(c.id)}" data-close="${c.close_ts}">
-    <div class="un-cd">--:--</div>
+    <div class="un-top"><span class="un-cd">--:--</span><span class="un-mv" data-mv="${escAttr(c.id)}"></span></div>
     <div class="un-q">${esc(c.title)}</div>
     <div class="un-odds"><span class="no">${no}¢ No</span><span class="yes">${yes}¢ Yes</span></div>
   </div>`;
+}
+
+// ── Live Pulse: real odds-movement sparklines (Kalshi candlesticks) ─────
+function gatherVisibleIds() {
+  const ids = [];
+  if (state.view === "list") listView.querySelectorAll(".lrow").forEach((el) => el.dataset.id && ids.push(el.dataset.id));
+  else deckCards().slice(0, 13).forEach((c) => ids.push(c.id));
+  return [...new Set(ids)].filter((id) => id.startsWith("k_")).slice(0, 16);
+}
+let _sparkTimer = 0;
+function scheduleSpark() { clearTimeout(_sparkTimer); _sparkTimer = setTimeout(loadSpark, 200); }
+async function loadSpark() {
+  const ids = gatherVisibleIds();
+  if (!ids.length) return;
+  try {
+    const r = await fetch(`/api/spark?ids=${encodeURIComponent(ids.join(","))}`);
+    const d = await r.json();
+    Object.assign(state.spark, d.spark || {});
+    paintSparks();
+  } catch {}
+}
+function sparkPath(series, w, h, pad) {
+  const min = Math.min(...series), max = Math.max(...series), range = (max - min) || 0.02, n = series.length;
+  const X = (i) => pad + (n === 1 ? 0 : (i / (n - 1)) * (w - 2 * pad));
+  const Y = (v) => h - pad - ((v - min) / range) * (h - 2 * pad);
+  let d = "";
+  series.forEach((v, i) => { d += (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1) + " "; });
+  return { d, lastX: X(n - 1), lastY: Y(series[n - 1]) };
+}
+function mvBadge(delta) {
+  if (!delta) return `<span class="mv flat">●&nbsp;flat</span>`;
+  const up = delta > 0;
+  return `<span class="mv ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${delta}¢</span>`;
+}
+function sparkCard(series, delta) {
+  const w = 300, h = 40, pad = 4;
+  const col = delta > 0 ? "var(--green)" : delta < 0 ? "var(--magenta)" : "var(--muted)";
+  const { d, lastX, lastY } = sparkPath(series, w, h, pad);
+  const gid = "sg" + Math.floor(Math.random() * 1e6);
+  return `<div class="cs-head"><span class="cs-lbl">live odds · last 30m</span>${mvBadge(delta)}</div>
+    <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+      <path d="${d} L ${lastX.toFixed(1)} ${h} L ${pad} ${h} Z" fill="url(#${gid})"/>
+      <path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="2.8" fill="${col}"/>
+    </svg>`;
+}
+// candlestick history + the latest live price → the line's tip moves every poll.
+function seriesFor(id) {
+  const sp = state.spark[id];
+  const card = state.all.find((c) => c.id === id);
+  const live = card ? card.yes_price : null;
+  if (sp && sp.series.length >= 2) {
+    let series = sp.series.slice(), delta = sp.delta;
+    if (live != null && Math.abs(live - sp.last) >= 0.005) { series = series.concat([live]); delta = Math.round((live - sp.first) * 100); }
+    return { series, delta };
+  }
+  // no candle history yet (fresh market) → use the live-polled series
+  const tick = state.tick[id] || [];
+  if (tick.length >= 2) return { series: tick.slice(-30), delta: Math.round((tick[tick.length - 1] - tick[0]) * 100) };
+  return live != null ? { series: [live], delta: 0 } : null;
+}
+function paintSparks() {
+  document.querySelectorAll("[data-spark]").forEach((el) => {
+    const s = seriesFor(el.getAttribute("data-spark"));
+    el.innerHTML = (s && s.series.length >= 2) ? sparkCard(s.series, s.delta) : "";
+  });
+  document.querySelectorAll("[data-mv]").forEach((el) => {
+    const s = seriesFor(el.getAttribute("data-mv"));
+    el.innerHTML = (s && s.series.length >= 2) ? mvBadge(s.delta) : "";
+  });
+  paintLiveOdds();
 }
 
 // ── swipe deck ────────────────────────────────────────────────────────
@@ -134,6 +230,7 @@ function cardEl(c) {
     </div>
     <div class="card-countdown"><span class="cd-num">--:--</span><span class="cd-lbl">until close</span></div>
     <div class="card-q">${esc(c.title)}</div>
+    <div class="card-spark" data-spark="${escAttr(c.id)}"></div>
     <div class="card-odds">
       <div class="odd no"><span class="p">${no}¢</span><span class="l">No</span></div>
       <div class="odd yes"><span class="p">${yes}¢</span><span class="l">Yes</span></div>
@@ -160,7 +257,7 @@ function listRow(c) {
     <div class="l-drain"></div>
     <div class="l-cd"><div class="n">--:--</div><div class="l">left</div></div>
     <div class="l-mid">
-      <div class="l-cat">${c.emoji || "🎲"} ${esc(c.category)} · ${c.platform === "kalshi" ? "KALSHI" : "POLY"}</div>
+      <div class="l-cat">${c.emoji || "🎲"} ${esc(c.category)} · ${c.platform === "kalshi" ? "KALSHI" : "POLY"} <span class="l-mv" data-mv="${escAttr(c.id)}"></span></div>
       <div class="l-q">${esc(c.title)}</div>
     </div>
     <div class="l-action">
@@ -264,7 +361,7 @@ function commit(side, card, el) {
   state.seen.add(card.id);
   if (side !== "skip") { state.called.set(card.id, side); recordCall(card, side); }
   state.topId = "__advance__";
-  setTimeout(() => { maybeRenderSwipe(); renderUpNext(); }, 60);
+  setTimeout(() => { maybeRenderSwipe(); renderUpNext(); paintSparks(); scheduleSpark(); }, 60);
 }
 
 // ── slip + streak game ────────────────────────────────────────────────
@@ -376,6 +473,7 @@ $("#slipClose").onclick = () => $("#slipPanel").classList.remove("open");
 // ── boot ──────────────────────────────────────────────────────────────
 renderSlip(); computeStats(); load(); resolveSlip();
 setInterval(paintCountdowns, 1000);
-setInterval(() => { if (!document.hidden && !state.dragging) load(); }, 12000);
+setInterval(() => { if (!document.hidden && !state.dragging) load(); }, 8000);   // fresh prices/odds
+setInterval(() => { if (!document.hidden) loadSpark(); }, 12000);                 // live pulse sparklines
 setInterval(() => { if (!document.hidden) resolveSlip(); }, 30000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) { load(); resolveSlip(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { load(); loadSpark(); resolveSlip(); } });
