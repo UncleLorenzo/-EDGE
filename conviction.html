@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conviction — Smart money × momentum · $EDGE</title>
+<meta name="description" content="The highest-conviction signal in prediction markets: when a tracked profitable wallet bets a market that's ALSO breaking out their way. Smart money + momentum, agreeing.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.thepolyedge.com/conviction.html">
+<link rel="canonical" href="https://www.thepolyedge.com/conviction.html">
+<meta property="og:title" content="🎯 Conviction — smart money × momentum">
+<meta property="og:description" content="When a proven sharp bets a market that's breaking out their way. The highest-conviction signal on the board, live.">
+<meta property="og:image" content="https://www.thepolyedge.com/og-share.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050507">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/lib/client/elite.css">
+<script defer src="/lib/client/elite.js"></script>
+<script defer src="/lib/client/ticker.js"></script>
+<script defer src="/lib/client/palette.js"></script>
+
+<style>
+:root {
+  --void: #050507; --void-2: #0c0c10; --void-3: #141418; --void-4: #1c1c22;
+  --lime: #C4FF00; --magenta: #FF006E; --green: #00FF85; --amber: #FFB800;
+  --gold: #FFD24A; --red: #FF3344; --white: #F5F5F0; --muted: #6B6B73;
+  --border: rgba(245,245,240,0.08); --border-bright: rgba(196,255,0,0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--void); color: var(--white); font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; min-height: 100vh; }
+/* terminal grid texture + conviction glow */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+  background-image: linear-gradient(rgba(196,255,0,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(196,255,0,.025) 1px, transparent 1px);
+  background-size: 44px 44px; mask-image: radial-gradient(80% 60% at 50% 0%, #000, transparent 75%);
+}
+body::after {
+  content: ''; position: fixed; inset: -20%; z-index: 0; pointer-events: none;
+  background: radial-gradient(40% 36% at 50% 0%, rgba(255,210,74,.10), transparent 70%),
+              radial-gradient(36% 36% at 85% 90%, rgba(0,255,133,.07), transparent 70%);
+  filter: blur(26px);
+}
+header, main { position: relative; z-index: 2; }
+main.conv { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+
+/* hero */
+.conv-hero { text-align: center; padding: 6px 0 20px; }
+.conv-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(255,210,74,.32); border-radius: 100px; padding: 5px 15px; background: rgba(255,210,74,.05); }
+.conv-badge .tgt { animation: spin 6s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.conv-h1 { font-family: 'Anton', sans-serif; font-size: clamp(46px, 11vw, 92px); line-height: .92; letter-spacing: -.01em; margin: 14px 0 8px; }
+.conv-h1 .g { background: linear-gradient(100deg, var(--gold), var(--lime)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.conv-sub { color: var(--muted); font-size: 15px; max-width: 600px; margin: 0 auto; line-height: 1.55; }
+.conv-sub b { color: var(--white); }
+.conv-stats { display: inline-flex; align-items: center; gap: 18px; margin-top: 18px; padding: 11px 22px; border: 1px solid var(--border); border-radius: 14px; background: rgba(255,255,255,.015); font-family: 'JetBrains Mono', monospace; }
+.conv-stat { text-align: center; }
+.conv-stat .n { font-family: 'Anton', sans-serif; font-size: 26px; line-height: 1; }
+.conv-stat .n.live { color: var(--gold); } .conv-stat .n.alt { color: var(--green); }
+.conv-stat .l { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+.conv-stat-div { width: 1px; height: 30px; background: var(--border); }
+.conv-how { margin: 18px auto 0; max-width: 640px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+.conv-how b { color: var(--gold); } .conv-how .mm { color: var(--green); }
+
+/* feed */
+.conv-feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(390px, 1fr)); gap: 16px; margin-top: 26px; }
+
+/* scanning state */
+.conv-scan { grid-column: 1 / -1; text-align: center; padding: 56px 22px; border: 1px dashed rgba(255,210,74,.22); border-radius: 18px; background: rgba(255,210,74,.02); }
+.scan-pulse { width: 54px; height: 54px; margin: 0 auto 18px; border-radius: 50%; border: 2px solid rgba(255,210,74,.3); position: relative; }
+.scan-pulse::before { content: '🎯'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.scan-pulse::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--gold); animation: scanring 1.8s ease-out infinite; }
+@keyframes scanring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.7); opacity: 0; } }
+.scan-txt { font-family: 'Anton', sans-serif; font-size: 22px; text-transform: uppercase; letter-spacing: .01em; }
+.scan-sub { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; max-width: 420px; margin: 10px auto 0; }
+.scan-sub b { color: var(--white); }
+
+/* conviction card */
+.conv-card {
+  position: relative; overflow: hidden; text-decoration: none; color: inherit;
+  background: linear-gradient(168deg, var(--void-3), var(--void-2));
+  border: 1px solid var(--border); border-radius: 18px; padding: 16px 17px;
+  display: flex; flex-direction: column; gap: 11px;
+  transition: transform .16s, border-color .16s, box-shadow .16s;
+}
+.conv-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.conv-card.elite::before { background: linear-gradient(var(--gold), var(--amber)); }
+.conv-card.strong::before { background: var(--green); }
+.conv-card.live::before { background: var(--lime); }
+.conv-card.elite { border-color: rgba(255,210,74,.3); }
+.conv-card:hover { transform: translateY(-4px); border-color: var(--border-bright); box-shadow: 0 22px 54px rgba(0,0,0,.5); }
+.conv-card.elite:hover { box-shadow: 0 22px 54px rgba(0,0,0,.5), 0 0 40px rgba(255,210,74,.12); }
+
+.cc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.cc-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.cc-av { width: 40px; height: 40px; border-radius: 50%; flex: 0 0 auto; overflow: hidden; background: var(--void-4); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 16px; color: var(--lime); }
+.cc-av img { width: 100%; height: 100%; object-fit: cover; }
+.cc-id { min-width: 0; }
+.cc-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-cred { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.cc-cred .pnl { color: var(--green); font-weight: 700; }
+
+/* the gauge */
+.cc-gauge { text-align: right; flex: 0 0 auto; }
+.cc-score { font-family: 'Anton', sans-serif; font-size: 40px; line-height: .85; }
+.conv-card.elite .cc-score { color: var(--gold); text-shadow: 0 0 24px rgba(255,210,74,.4); }
+.conv-card.strong .cc-score { color: var(--green); }
+.conv-card.live .cc-score { color: var(--lime); }
+.cc-tier { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: .16em; color: var(--muted); margin-top: 3px; }
+.cc-meter { height: 4px; border-radius: 3px; background: var(--void-4); overflow: hidden; }
+.cc-meter-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--gold)); box-shadow: 0 0 10px rgba(255,210,74,.4); }
+
+.cc-mkt { font-weight: 700; font-size: 15px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cc-spark { display: flex; align-items: center; gap: 11px; min-height: 46px; }
+.cc-spark svg { flex: 1 1 auto; height: 46px; }
+.cc-mom { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; white-space: nowrap; flex: 0 0 auto; }
+.cc-mom.up { color: var(--green); } .cc-mom.down { color: var(--magenta); }
+.cc-bet { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--white); }
+.cc-side { font-weight: 700; padding: 2px 8px; border-radius: 5px; }
+.cc-side.buy { color: var(--green); background: rgba(0,255,133,.1); } .cc-side.sell { color: var(--magenta); background: rgba(255,0,110,.1); }
+.cc-bet b { color: var(--white); }
+.cc-verdict { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--green); }
+.cc-verdict b { color: var(--gold); }
+.cc-trade { color: var(--lime); font-weight: 700; white-space: nowrap; }
+
+/* toasts */
+.conv-toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: calc(100% - 28px); max-width: 480px; }
+.ct { pointer-events: auto; background: rgba(12,12,16,.97); border: 1px solid var(--gold); border-radius: 12px; padding: 11px 14px; display: flex; align-items: center; gap: 11px; box-shadow: 0 0 32px rgba(255,210,74,.25), 0 14px 40px rgba(0,0,0,.6); transform: translateY(16px); opacity: 0; transition: transform .28s, opacity .28s; width: 100%; text-decoration: none; }
+.ct.in { transform: translateY(0); opacity: 1; }
+.ct .tag { font-family: 'Anton', sans-serif; font-size: 24px; color: var(--gold); }
+.ct .txt { flex: 1; min-width: 0; font-size: 12px; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ct .txt b { color: var(--gold); }
+.ct .go { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); white-space: nowrap; }
+
+@media (max-width: 560px) {
+  main.conv { padding: 16px 12px 80px; }
+  .conv-feed { grid-template-columns: 1fr; gap: 12px; }
+  .conv-stats { gap: 12px; padding: 10px 16px; }
+  .conv-stat .n { font-size: 22px; }
+  .cc-score { font-size: 34px; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="elite-nav site-nav">
+  <a class="logo" href="/"><span class="dollar">$</span><span class="word">EDGE</span></a>
+  <nav><ul></ul></nav>
+  <div class="nav-right">
+    <a class="btn btn-app" href="/dashboard.html">Dashboard</a>
+    <a class="btn btn-ghost" href="/token.html">Buy $EDGE</a>
+  </div>
+</header>
+
+<main class="conv">
+  <div class="conv-hero">
+    <span class="conv-badge"><span class="tgt">🎯</span> The sharpest signal on the board</span>
+    <h1 class="conv-h1">CON<span class="g">VICTION</span></h1>
+    <div class="conv-sub">When a <b>proven profitable wallet</b> bets a market that's <b>ALSO breaking out their way</b> — smart money and momentum, pointing the same direction, at the same moment.</div>
+    <div class="conv-stats">
+      <div class="conv-stat"><div class="n live" id="convCount">—</div><div class="l">Live signals</div></div>
+      <div class="conv-stat-div"></div>
+      <div class="conv-stat"><div class="n alt" id="convTop">—</div><div class="l">Top conviction</div></div>
+      <div class="conv-stat-div"></div>
+      <div class="conv-stat"><div class="n" id="convSharps">—</div><div class="l">Sharps tracked</div></div>
+    </div>
+    <div class="conv-how">Conviction score = wallet rank × bet size × <span class="mm">aligned momentum</span> × freshness. <b>Elite</b> ≥ 80 · Strong ≥ 60 · Live ≥ 45.</div>
+  </div>
+
+  <div class="conv-feed" id="convFeed">
+    <div class="conv-scan"><div class="scan-pulse"></div><div class="scan-txt">Scanning the tape…</div><div class="scan-sub">Watching every tracked sharp's move against live momentum.</div></div>
+  </div>
+</main>
+
+<div class="conv-toasts" id="convToasts"></div>
+
+<script type="module" src="/conviction.js"></script>
+</body>
+</html>
