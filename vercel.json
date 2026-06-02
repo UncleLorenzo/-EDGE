@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     { "path": "/api/cron/harvest-wallets", "schedule": "0 0 * * *" },
-    { "path": "/api/cron/eagle-scan", "schedule": "*/10 * * * *" }
+    { "path": "/api/cron/eagle-scan", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/x-autopost", "schedule": "*/15 * * * *" }
   ],
   "redirects": [
     { "source": "/marketing/:path*", "destination": "/", "permanent": false },
