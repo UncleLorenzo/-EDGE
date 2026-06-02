@@ -53,7 +53,13 @@ async function isPosted(key) { if (!kvEnabled) return false; try { return !!(awa
 async function markPosted(key) { if (!kvEnabled) return; try { await kvCmd(["SET", `x:p:${key}`, "1", "EX", "172800"]); } catch {} }
 
 export default async function handler(req, res) {
-  const force = new URL(req.url, "http://localhost").searchParams.get("force") === "1";
+  const params = new URL(req.url, "http://localhost").searchParams;
+  const force = params.get("force") === "1";
+  if (params.get("debug") === "1") {
+    const g = async (u) => { try { const j = await fetch(u).then((r) => r.json()); return { ok: true, keys: Object.keys(j || {}), n: (j?.cards || j?.tape || j?.markets || []).length }; } catch (e) { return { err: String(e?.message || e) }; } };
+    res.status(200).json({ debug: true, BASE, VERCEL_URL: process.env.VERCEL_URL || null, live: await g(`${BASE}/api/live?hours=6`), sm: await g(`${BASE}/api/whales/smart-money`), buzz: await g(`${BASE}/api/buzz/markets?limit=8`) });
+    return;
+  }
   const cands = await gather();
   if (!cands.length) { res.status(200).json({ ok: true, posted: false, reason: "no candidates right now", x_connected: xEnabled() }); return; }
 
