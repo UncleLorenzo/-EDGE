@@ -404,6 +404,67 @@ footer a { color: var(--lime); text-decoration: none; }
   .tier-grid, .roadmap { grid-template-columns: 1fr; }
   .stat-strip { grid-template-columns: 1fr 1fr; }
 }
+
+/* ──────────────────────────────────────────────────────────────────
+   LOCKED STATE — token info fully visible, but page reads "locked,
+   launch TBA". A banner + hero seal + corner ribbon do the talking;
+   nothing is hidden or blurred (Rob: "ppl can still see all the info").
+   ────────────────────────────────────────────────────────────────── */
+.lock-bar {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap; text-align: center;
+  padding: 13px 22px; margin-bottom: 6px;
+  background: linear-gradient(90deg, rgba(196,255,0,.08), rgba(12,12,16,.55) 45%, rgba(196,255,0,.08));
+  border-top: 1px solid var(--border-bright);
+  border-bottom: 1px solid var(--border-bright);
+  font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px;
+}
+.lock-bar::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 36%, rgba(196,255,0,.10) 50%, transparent 64%);
+  animation: lockShine 4.2s linear infinite;
+}
+@keyframes lockShine { 0% { transform: translateX(-55%); } 100% { transform: translateX(55%); } }
+.lock-bar > * { position: relative; z-index: 1; }
+.lock-bar .ico { font-size: 15px; filter: drop-shadow(0 0 8px rgba(196,255,0,.5)); }
+.lock-bar .t { color: var(--muted); letter-spacing: .01em; }
+.lock-bar .t b { color: var(--white); }
+.lock-bar .t .tba { color: var(--lime); font-weight: 700; }
+.lock-bar .cta {
+  color: var(--void); background: var(--lime); border-radius: 100px;
+  padding: 6px 16px; text-decoration: none; font-weight: 700; white-space: nowrap;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.lock-bar .cta:hover { transform: translateY(-1px); box-shadow: 0 7px 20px rgba(196,255,0,.28); }
+
+/* hero "locked seal" — replaces the old status pill */
+.lock-badge {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--lime);
+  border: 1px solid var(--border-bright); border-radius: 100px;
+  padding: 8px 18px; background: rgba(196,255,0,.05);
+  box-shadow: 0 0 24px rgba(196,255,0,.07), inset 0 0 0 1px rgba(196,255,0,.03);
+}
+.lock-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--lime);
+  box-shadow: 0 0 10px var(--lime); animation: lockPulse 1.7s ease-in-out infinite;
+}
+@keyframes lockPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.8); } }
+
+/* corner ribbon stamped on the hero */
+.hero { position: relative; }
+.lock-ribbon {
+  position: absolute; top: 22px; right: -44px; transform: rotate(40deg);
+  background: var(--lime); color: var(--void);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .14em;
+  padding: 5px 52px; pointer-events: none; z-index: 2;
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+}
+@media (max-width: 640px) { .lock-ribbon { display: none; } }
 </style>
 </head>
 
@@ -431,8 +492,16 @@ footer a { color: var(--lime); text-decoration: none; }
 
 <main>
   <!-- ── HERO ───────────────────────────────────────────────────────── -->
+  <!-- ── LOCKED BANNER ──────────────────────────────────────────── -->
+  <div class="lock-bar">
+    <span class="ico">🔒</span>
+    <span class="t"><b>$EDGE is locked.</b> Launch is <span class="tba">TBA</span> — full tokenomics are public below; the token goes live the day we announce.</span>
+    <a class="cta" href="/waitlist">Get notified →</a>
+  </div>
+
   <section class="hero">
-    <div class="status-pill">Pre-Launch · Deflationary by Design</div>
+    <div class="lock-ribbon">LOCKED</div>
+    <div class="lock-badge"><span class="dot"></span>Locked · Launch TBA</div>
     <h1>$<span class="accent">EDGE</span></h1>
     <p class="tagline">Fair launch. Day-one utility. Deflationary on Solana.</p>
     <p class="subline">
@@ -444,8 +513,9 @@ footer a { color: var(--lime); text-decoration: none; }
       — the more the product gets used, the rarer the token gets.
     </p>
     <div class="hero-ctas">
-      <a href="#tiers" class="btn btn-primary">See Utility Tiers</a>
-      <a href="/burns.html" class="btn btn-secondary">See Burn Tracker →</a>
+      <a href="/waitlist" class="btn btn-primary">🔒 Get notified at launch</a>
+      <a href="#tiers" class="btn btn-secondary">See Utility Tiers</a>
+      <a href="/burns.html" class="btn btn-secondary">Burn Tracker →</a>
     </div>
 
     <!-- All hard numbers below are DRAFT — confirm before launch -->
